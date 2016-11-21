@@ -134,7 +134,6 @@ def monthly_climatology_lp(ser):
 
 ## 
 
-
 # output synthesis is daily for this entire period.
 # overkill, but there are some interesting features which
 # wouldn't be resolved at monthly timescales
