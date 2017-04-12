@@ -27,12 +27,12 @@ permit.
  
 ### Stockton
  * 28 mgd
- * <A href="https://ciwqs.waterboards.ca.gov/ciwqs/readOnly/PublicAttachmentRetriever?parentID=396967&attachmentID=1464186&attType=3">NPDES</a>
+ * <A href="https://ciwqs.waterboards.ca.gov/ciwqs/readOnly/PublicAttachmentRetriever?parentID=396967&attachmentID=1464186&attType=3">NPDES</A> permit.
  * Upgraded to tertiary treatment in June 2007, and plans to upgrade to denitrification by June 2024.
  
 ### Tracy
  * 7.1 mgd
- * <A href="https://ciwqs.waterboards.ca.gov/ciwqs/readOnly/PublicAttachmentRetriever?parentID=388803&attachmentID=1157386&attType=3">NPDES</a>
+ * <A href="https://ciwqs.waterboards.ca.gov/ciwqs/readOnly/PublicAttachmentRetriever?parentID=388803&attachmentID=1157386&attType=3">NPDES</A> permit.
  * Two outfalls are listed, but they are close to each other, both on Old River.
  
  ### Davis
