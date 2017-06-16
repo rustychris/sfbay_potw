@@ -18,6 +18,28 @@ def load_wwtp(filename, outfile, tname, tformat, varname, unitsname, units, meth
 	df.to_csv(outfile)
 	return df
 
+def day_ind(time):
+	d = 0 
+	ind = np.zeros(len(time))
+	for i in range(1,len(time)):
+		if time[i].year == time[i-1].year and time[i].month == time[i-1].month and time[i].day == time[i-1].day:
+			ind[i] = d
+		else:
+			d += 1
+			ind[i] = d
+	return ind
+
+def day_avg(time, var, ind):
+	date = []
+	dvar = np.zeros(ind[-1])
+	d = 0 
+	for i in range(int(ind[-1])):
+		date.append(time[d])
+		dvar[i] = np.mean(var[np.where(ind==i)[0]])
+		d += len(np.where(ind==i)[0])
+	return date, dvar
+	
+	
 # variables that don't change between wwtp files
 inpath = "../sources/delta_sources/"	
 outpath = "../outputs/intermediate/delta/"
@@ -35,6 +57,8 @@ outfile = outpath + "Davis_Ammonia.csv"
 units = "mg/L"
 vname = "NH3 mg/L N"
 am_df = load_wwtp(filename, outfile, tname, tformat, varname, unitsname, units, method, cols, vname)
+ind = day_ind(am_df.Time)
+time, am = day_avg(am_df.Time, am_df["NH3 mg/L N"], ind)
 
 # flow
 filename = inpath + "Davis_5A570100001_Flow.csv"
