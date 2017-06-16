@@ -3,8 +3,34 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime as dt
 
+
+# not working yet... 
+def load_usgs(filename, header, tformat, dname, tname, tzname, varname):
+	dat = pd.read_csv(filename, header=header, delim_whitespace=True)
+	dat[dname+tname] = dat[dname] + " " + dat[tname]
+	dtime = [dt.datetime.strptime(dat[dname+tname][i], tformat) \
+			 for i in range(1, len(dat[dname+tname][:]))]
+	for i in range(len(dtime)):
+		if dat[tzname][i+1] == 'PST':
+			dtime[i] += dt.timedelta(hours=8)
+		elif dat[tzname][i+1] == 'PDT':
+			dtime[i] += dt.timedelta(hours=7)
+		dtime[i].replace(tzinfo=dt.timezone.utc)
+	var = dat[varname][1:]
+	times = [dtime[i].timestamp for i in range(len(dtime))]
+	return times, var
+	
+inpath = "../sources/delta_sources/"	
+tformat = "%Y-%m-%d %H:%M"
+dname = "date"
+tname = "time"
+tzname = "tz_cd"
+	
 ##### VERNALIS : DISCHARGE
-filename = "USGS_11303500_Vernalis_Discharge.txt"
+filename = inpath + "USGS_11303500_Vernalis_Discharge.txt"
+header = 29
+varname = "15169_00060"
+
 dat = pd.read_csv(filename, header=29, delim_whitespace=True)
 dat["datetime"] = dat["date"] + " " + dat["time"]
 
