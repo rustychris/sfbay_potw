@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import datetime as dt
 
 
-# not working yet... 
 def load_usgs(filename, header, tformat, dname, tname, tzname, varname):
 	dat = pd.read_csv(filename, header=header, delim_whitespace=True)
 	dat[dname+tname] = dat[dname] + " " + dat[tname]
@@ -17,8 +16,30 @@ def load_usgs(filename, header, tformat, dname, tname, tzname, varname):
 			dtime[i] += dt.timedelta(hours=7)
 		dtime[i].replace(tzinfo=dt.timezone.utc)
 	var = dat[varname][1:]
-	times = [dtime[i].timestamp for i in range(len(dtime))]
-	return times, var
+	times = [dtime[i].timestamp() for i in range(len(dtime))]
+	return dtime, times, var
+	
+def day_ind(dtime):
+	d = 0 
+	ind = np.zeros(len(dtime))
+	for i in range(1,len(dtime)):
+		if dtime[i].date() == dtime[i-1].date():
+			ind[i] = d
+		else:
+			d += 1
+			ind[i] = d
+	return ind
+
+def day_avg(time, var, ind):
+	date = []
+	dvar = np.zeros(ind[-1])
+	d = 0 
+	for i in range(int(ind[-1])):
+		date.append(time[d].date())
+		dvar[i] = np.mean(var[np.where(ind==i)[0]].astype(np.float))
+		d += len(np.where(ind==i)[0])
+	return date, dvar
+	
 	
 inpath = "../sources/delta_sources/"	
 tformat = "%Y-%m-%d %H:%M"
@@ -30,140 +51,79 @@ tzname = "tz_cd"
 filename = inpath + "USGS_11303500_Vernalis_Discharge.txt"
 header = 29
 varname = "15169_00060"
-
-dat = pd.read_csv(filename, header=29, delim_whitespace=True)
-dat["datetime"] = dat["date"] + " " + dat["time"]
-
-dtime = []
-for i in range(1,len(dat["datetime"][:])):
-	dtime.append(dt.datetime.strptime(dat["datetime"][i], "%Y-%m-%d %H:%M"))
-for i in range(len(dtime)):
-	if dat["tz_cd"][i+1] == 'PST':
-		dtime[i] += dt.timedelta(hours=8)
-	elif dat["tz_cd"][i+1] == 'PDT':
-		dtime[i] += dt.timedelta(hours=7)
-	dtime[i].replace(tzinfo=dt.timezone.utc)
-
-discharge = dat["15169_00060"][1:]
-
-times = []
-for i in range(len(dtime)):
-	times.append(dtime[i].timestamp)
-
-dat_new = {'time': times,
-		   'flow': discharge}
-#df = pd.DataFrame(dat_new, columns=['time','flow'])		   
-#dat_new.to_csv("name.csv")
+dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
+ind = day_ind(dtime)
+dates, ddis = day_avg(dtime, discharge, ind)
+dat_new = {'time': dates,
+		   'flow': ddis}
+df = pd.DataFrame(dat_new, columns=['time','flow'])		   
+df.to_csv("../outputs/intermediate/delta/SanJoaquinDischarge.csv")
 		   
-plt.figure()
-plt.plot_date(dtime, discharge, '-')	
-plt.title(filename)
+#plt.figure()
+#plt.plot_date(dtime, discharge, '-')	
+#plt.title(filename)
 
 ##### VERNALIS : NUTRIENTS	
-filename = "USGS_11303500_Vernalis_Nutrients.txt"
-dat = pd.read_csv(filename, header=26, delim_whitespace=True)
-dat["datetime"] = dat["date"] + " " + dat["time"]
-
-ntime = []
-for i in range(1,len(dat["datetime"][:])):
-	ntime.append(dt.datetime.strptime(dat["datetime"][i], "%Y-%m-%d %H:%M"))
-for i in range(len(ntime)):
-	if dat["tz_cd"][i+1] == 'PST':
-		ntime[i] += dt.timedelta(hours=8)
-	elif dat["tz_cd"][i+1] == 'PDT':
-		ntime[i] += dt.timedelta(hours=7)
-	ntime[i].replace(tzinfo=dt.timezone.utc)
+filename = inpath + "USGS_11303500_Vernalis_Nutrients.txt"
+header = 26
+varname = "15171_99133"
+dtime, times, nutrients = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
+ind = day_ind(dtime)
+dates, dnut = day_avg(dtime, nutrients, ind)
+dat_new = {'time': dates,
+		   'N+N mg/L N': dnut}
+df = pd.DataFrame(dat_new, columns=['time','N+N mg/L N'])		   
+df.to_csv("../outputs/intermediate/delta/SanJoaquinNutrients.csv")
 	
-nutrients = dat["15171_99133"][1:]
-times = []
-for i in range(len(ntime)):
-	times.append(ntime[i].timestamp)
-
-dat_new = {'time': times,
-		   'nutrients': nutrients}	
-	
-plt.figure()	
-plt.plot_date(ntime, nutrients, '-')	
-plt.title(filename)
+#plt.figure()	
+#plt.plot_date(ntime, nutrients, '-')	
+#plt.title(filename)
 	
 	
 ##### FREEPORT : DISCHARGE	
-filename = "USGS_11447650_Freeport_Discharge.txt"
-dat = pd.read_csv(filename, header=28, delim_whitespace=True)
-dat["datetime"] = dat["date"] + " " + dat["time"]
-
-dtime = []
-for i in range(1,len(dat["datetime"][:])):
-	dtime.append(dt.datetime.strptime(dat["datetime"][i], "%Y-%m-%d %H:%M"))
-for i in range(len(ntime)):
-	if dat["tz_cd"][i+1] == 'PST':
-		dtime[i] += dt.timedelta(hours=8)
-	elif dat["tz_cd"][i+1] == 'PDT':
-		dtime[i] += dt.timedelta(hours=7)
-	dtime[i].replace(tzinfo=dt.timezone.utc)
+filename = inpath + "USGS_11447650_Freeport_Discharge.txt"
+header = 28
+varname = "176626_00060"
+dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
+ind = day_ind(dtime)
+dates, ddis = day_avg(dtime, discharge, ind)
+dat_new = {'time': dates,
+		   'flow': ddis}
+df = pd.DataFrame(dat_new, columns=['time','flow'])		   
+df.to_csv("../outputs/intermediate/delta/SacramentoFreeportDischarge.csv")
 	
-discharge = dat["176626_00060"][1:]
-times = []
-for i in range(len(dtime)):
-	times.append(dtime[i].timestamp)
-
-dat_new = {'time': times,
-		   'flow': discharge}
-	
-plt.figure()
-plt.plot_date(dtime, discharge, '-')
-plt.title(filename)
+#plt.figure()
+#plt.plot_date(dtime, discharge, '-')
+#plt.title(filename)
 	
 ##### FREEPORT : NUTRIENTS
-filename = "USGS_11447650_Freeport_Nutrients.txt"
-dat = pd.read_csv(filename, header=26, delim_whitespace=True)
-dat["datetime"] = dat["date"] + " " + dat["time"]
-
-ntime = []
-for i in range(1,len(dat["datetime"][:])):
-	ntime.append(dt.datetime.strptime(dat["datetime"][i], "%Y-%m-%d %H:%M"))
-for i in range(len(ntime)):
-	if dat["tz_cd"][i+1] == 'PST':
-		ntime[i] += dt.timedelta(hours=8)
-	elif dat["tz_cd"][i+1] == 'PDT':
-		ntime[i] += dt.timedelta(hours=7)
-	ntime[i].replace(tzinfo=dt.timezone.utc)
+filename = inpath + "USGS_11447650_Freeport_Nutrients.txt"
+header = 26
+varname = "15759_99133"
+dtime, times, nutrients = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
+ind = day_ind(dtime)
+dates, dnut = day_avg(dtime, nutrients, ind)
+dat_new = {'time': dates,
+		   'N+N mg/L N': dnut}
+df = pd.DataFrame(dat_new, columns=['time','N+N mg/L N'])		   
+df.to_csv("../outputs/intermediate/delta/SacramentoFreeportNutrients.csv")
 	
-nutrients = dat["15759_99133"][1:]
-times = []
-for i in range(len(ntime)):
-	times.append(ntime[i].timestamp)
-
-dat_new = {'time': times,
-		   'nutrients': nutrients}	
-	
-plt.figure()
-plt.plot_date(ntime, nutrients, '-')
-plt.title(filename)
+#plt.figure()
+#plt.plot_date(ntime, nutrients, '-')
+#plt.title(filename)
 		
 ##### VERONA : DISCHARGE		
-filename = "USGS_11425500_Verona_Discharge.txt"
-dat = pd.read_csv(filename, header=30, delim_whitespace=True)
-dat["datetime"] = dat["date"] + " " + dat["time"]
-
-dtime = []
-for i in range(1,len(dat["datetime"][:])):
-	dtime.append(dt.datetime.strptime(dat["datetime"][i], "%Y-%m-%d %H:%M"))
-for i in range(len(ntime)):
-	if dat["tz_cd"][i+1] == 'PST':
-		dtime[i] += dt.timedelta(hours=8)
-	elif dat["tz_cd"][i+1] == 'PDT':
-		dtime[i] += dt.timedelta(hours=7)
-	dtime[i].replace(tzinfo=dt.timezone.utc)
+filename = inpath + "USGS_11425500_Verona_Discharge.txt"
+header = 30
+varname = "15690_00060"
+dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
+ind = day_ind(dtime)
+dates, ddis = day_avg(dtime, discharge, ind)
+dat_new = {'time': dates,
+		   'flow': ddis}
+df = pd.DataFrame(dat_new, columns=['time','flow'])		   
+df.to_csv("../outputs/intermediate/delta/SacramentoVeronaDischarge.csv")
 	
-discharge = dat["15690_00060"][1:]
-times = []
-for i in range(len(dtime)):
-	times.append(dtime[i].timestamp)
-
-dat_new = {'time': times,
-		   'flow': discharge}
-	
-plt.figure()
-plt.plot_date(dtime, discharge, '-')
-plt.title(filename)
+#plt.figure()
+#plt.plot_date(dtime, discharge, '-')
+#plt.title(filename)
