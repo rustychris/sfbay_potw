@@ -129,7 +129,8 @@ p_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, co
 ind = day_ind(p_df.Time)
 time, p = day_avg(p_df.Time, p_df[vname], ind)
 d = {'Time': pd.Series(time),
-	 vname: pd.Series(p)}
+	 vname: pd.Series(p),
+	 'PO4 mg/L P': pd.Series(p/2.23)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
 
@@ -299,6 +300,7 @@ p_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, co
 ind = day_ind(p_df.Time)
 time, p = day_avg(p_df.Time, p_df[vname], ind)
 d = {'Time': pd.Series(time),
-	 vname: pd.Series(p)}
+	 vname: pd.Series(p),
+	 'PO4 mg/L P': pd.Series(p/2.23)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
