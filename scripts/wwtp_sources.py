@@ -48,6 +48,7 @@ varname = "Result"
 unitsname = "Units"
 method = "Calculated Method"
 cols = [3,5,6,12]
+prat = 2.23
 
 ### DAVIS
 # ammonia
@@ -130,7 +131,7 @@ ind = day_ind(p_df.Time)
 time, p = day_avg(p_df.Time, p_df[vname], ind)
 d = {'Time': pd.Series(time),
 	 vname: pd.Series(p),
-	 'PO4 mg/L P': pd.Series(p/2.23)}
+	 'PO4 mg/L P': pd.Series(p/prat)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
 
@@ -301,6 +302,6 @@ ind = day_ind(p_df.Time)
 time, p = day_avg(p_df.Time, p_df[vname], ind)
 d = {'Time': pd.Series(time),
 	 vname: pd.Series(p),
-	 'PO4 mg/L P': pd.Series(p/2.23)}
+	 'PO4 mg/L P': pd.Series(p/prat)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
