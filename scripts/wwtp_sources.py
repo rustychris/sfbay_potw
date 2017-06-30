@@ -30,7 +30,7 @@ def day_ind(time):
 
 def day_avg(time, var, ind):
 	date = []
-	dvar = np.zeros(ind[-1])
+	dvar = np.zeros(int(ind[-1]))
 	d = 0 
 	for i in range(int(ind[-1])):
 		date.append(time[d].to_datetime().date())
@@ -63,6 +63,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(am)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, am, '-x', color="darkslategray")
+ax.set_title("Davis: Total Ammonia (as N)")
+ax.set_ylabel("mg/L")	
+fig.savefig(outpath + "figures/Davis_Ammonia.png") 
 
 
 # flow
@@ -77,6 +83,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(flw)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, flw, '-x', color="cadetblue")
+ax.set_title("Davis: Flow")
+ax.set_ylabel("MGD")
+fig.savefig(outpath + "figures/Davis_Flow.png")
 
 
 # nitrate
@@ -91,6 +103,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(na)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, na, '-x', color="seagreen")
+ax.set_title("Davis: Total Nitrate (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Davis_Nitrate.png")	
 
 
 # nitrite
@@ -105,6 +123,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(ni)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, ni, '-x', color="royalblue")
+ax.set_title("Davis: Total Nitrite (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Davis_Nitrite.png")
 
 
 # nitrite + nitrate
@@ -119,6 +143,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(nn)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, nn, '-x', color="olivedrab")
+ax.set_title("Davis: Nitrite+Nitrate (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Davis_Nitrite+Nitrate.png")	
 
 
 # phosphorus
@@ -134,6 +164,12 @@ d = {'Time': pd.Series(time),
 	 'PO4 mg/L P': pd.Series(p/prat)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, p, '-x', color="indianred")
+ax.set_title("Davis: Total Phosphorus (as P)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Davis_Phosphorus.png")	
 
 
 ### MANTECA
@@ -149,6 +185,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(am)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, am, '-x', color="darkslategray")
+ax.set_title("Manteca: Total Ammonia (as N)")
+ax.set_ylabel("mg/L")	
+fig.savefig(outpath + "figures/Manteca_Ammonia.png")
 
 
 # flow
@@ -163,6 +205,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(flw)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, flw, '-x', color="cadetblue")
+ax.set_title("Manteca: Flow")
+ax.set_ylabel("MGD")
+fig.savefig(outpath + "figures/Manteca_Flow.png")
 
 
 # nitrate
@@ -177,6 +225,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(na)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, na, '-x', color="seagreen")
+ax.set_title("Manteca: Total Nitrate (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Manteca_Nitrate.png")	
 
 
 # nitrite
@@ -191,6 +245,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(ni)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, ni, '-x', color="royalblue")
+ax.set_title("Manteca: Total Nitrite (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Manteca_Nitrite.png")
 
 
 # nitrite + nitrate
@@ -205,6 +265,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(nn)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, nn, '-x', color="olivedrab")
+ax.set_title("Manteca: Nitrite+Nitrate (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Manteca_Nitrite+Nitrate.png")	
 
 
 # nitrogen
@@ -219,6 +285,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(n)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, n, '-x', color="slateblue")
+ax.set_title("Manteca: Total Nitrogen (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Manteca_Nitrogen.png")	
 
 
 ### TRACY
@@ -234,6 +306,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(am)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, am, '-x', color="darkslategray")
+ax.set_title("Tracy: Total Ammonia (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Tracy_Ammonia.png")	
 
 
 # flow
@@ -248,6 +326,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(flw)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, flw, '-x', color="cadetblue")
+ax.set_title("Tracy: Flow")
+ax.set_ylabel("MGD")
+fig.savefig(outpath + "figures/Tracy_Flow.png")
 
 
 # nitrate
@@ -262,6 +346,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(na)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, na, '-x', color="seagreen")
+ax.set_title("Tracy: Total Nitrate (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Tracy_Nitrate.png")
 
 
 # nitrite
@@ -276,6 +366,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(ni)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, ni, '-x', color="royalblue")
+ax.set_title("Tracy: Total Nitrite (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Tracy_Nitrite.png")
 
 
 # nitrite + nitrate
@@ -290,6 +386,12 @@ d = {'Time': pd.Series(time),
 	 vname: pd.Series(nn)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, nn, '-x', color="olivedrab")
+ax.set_title("Tracy: Nitrite+Nitrate (as N)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Tracy_Nitrite+Nitrate.png")		
 
 
 # phosphorus
@@ -305,3 +407,160 @@ d = {'Time': pd.Series(time),
 	 'PO4 mg/L P': pd.Series(p/prat)}
 df = pd.DataFrame(d)
 df.to_csv(outfile)
+# plotting
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(time, p, '-x', color="indianred")
+ax.set_title("Tracy: Total Phosphorus (as P)")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Tracy_Phosphorus.png")	
+
+	
+def var_fields(date, variable):
+	time = []
+	var = []
+	for i in range(len(date)):
+		if np.isnan(float(variable[i]))==False:
+			time.append(dt.datetime.strptime(date[i], "%m/%d/%Y"))
+			var.append(variable[i]) 
+	return time, np.asarray(var)
+### REGIONAL SAN
+filename = inpath + "SacRegional.csv"
+outfile = outpath + "RegionalSan.csv"
+df = pd.read_csv(filename)
+df.rename(columns={'Flow': 'flow mgd', 'NH4_mgL': 'NH4 mg/L N', 
+				   'NO3_mgL': 'NO3 mg/L N', 'NO2_mgL': 'NO2 mg/L N',
+				   'TKN_mgL': 'TKN mg/L N', 'TP_mgL': 'TP mg/L P', 
+				   'PO4_mgL': 'PO4 mg/L P', 'Date': 'Time'}, inplace=True)
+header = ["Time", "flow mgd", "NH3 mg/L N", "NO3 mg/L N", "NO2 mg/L N", "TP mg/L P", "PO4 mg/L P", "TKN mg/L N"]
+df.to_csv(outfile, columns=header)
+# plotting
+date, var = var_fields(df["Time"], df["flow mgd"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="cadetblue")
+ax.set_title("Sac Regional: Flow")
+ax.set_ylabel("MGD")
+fig.savefig(outpath + "figures/RegionalSan_Flow.png")
+
+date, var = var_fields(df["Time"], df["NH4 mg/L N"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="darkslategray")
+ax.set_title("Sac Regional: Ammonium")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/RegionalSan_Ammonium.png")
+
+date, var = var_fields(df["Time"], df["NO3 mg/L N"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="seagreen")
+ax.set_title("Sac Regional: Nitrate")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/RegionalSan_Nitrate.png")
+
+date, var = var_fields(df["Time"], df["NO2 mg/L N"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="royalblue")
+ax.set_title("Sac Regional: Nitrite")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/RegionalSan_Nitrite.png")
+
+date, var = var_fields(df["Time"], df["TP mg/L P"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="indianred")
+ax.set_title("Sac Regional: Total Phosphorus")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/RegionalSan_Phosphorus.png")
+
+
+### STOCKTON
+filename = inpath + "Stockton Effluent 1992-09 through 2009-03.csv"
+outfile = outpath + "Stockton.csv"
+df = pd.read_csv(filename)
+df.rename(columns={'Flow_MGD': 'flow mgd', 'NH3_mgL': 'NH3 mg/L N', 
+				   'NO3_mgL': 'NO3 mg/L N', 'NO2_mgL': 'NO2 mg/L N',
+				   'TKN_mgL': 'TKN mg/L N', 'TP_mgL': 'TP mg/L P', 
+				   'Date': 'Time'}, inplace=True)
+header = ["Time", "flow mgd", "NH3 mg/L N", "NO3 mg/L N", "NO2 mg/L N", "TP mg/L P", "TKN mg/L N"]
+df.to_csv(outfile, columns=header)
+# plotting
+date, var = var_fields(df["Time"], df["flow mgd"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="cadetblue")
+ax.set_title("Stockton: Flow")
+ax.set_ylabel("MGD")
+fig.savefig(outpath + "figures/Stockton_Flow.png")
+
+date, var = var_fields(df["Time"], df["NH3 mg/L N"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="darkslategray")
+ax.set_title("Stockton: Ammonia")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Stockton_Ammonia.png")
+
+date, var = var_fields(df["Time"], df["NO3 mg/L N"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="seagreen")
+ax.set_title("Stockton: Nitrate")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Stockton_Nitrate.png")
+
+date, var = var_fields(df["Time"], df["NO2 mg/L N"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="royalblue")
+ax.set_title("Stockton: Nitrite")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Stockton_Nitrite.png")
+
+#date, var = var_fields(df["Time"], df["TP mg/L P"])
+#fig, ax = plt.subplots(figsize=(8,4))
+#ax.plot(date, var, '-x', color="indianred")
+#ax.set_title("Stockton: Total Phosphorus")
+#ax.set_ylabel("mg/L")
+#fig.savefig(outpath + "figures/Stockton_Phosphorus.png")
+
+### TRACY
+filename = inpath + "tracy.csv"
+outfile = outpath + "Tracy.csv"
+df = pd.read_csv(filename)
+df.rename(columns={'Flow': 'flow mgd', 'NH3': 'NH3 mg/L N', 
+				   'NO3': 'NO3 mg/L N', 'TP': 'TP mg/L P',
+				   'Date': 'Time'}, inplace=True)
+df.to_csv(outfile)
+# plotting
+date, var = var_fields(df["Time"], df["flow mgd"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="cadetblue")
+ax.set_title("Tracy: Flow")
+ax.set_ylabel("MGD")
+fig.savefig(outpath + "figures/Tracy_Flow.png")
+
+date, var = var_fields(df["Time"], df["NH3 mg/L N"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="darkslategray")
+ax.set_title("Tracy: Ammonia")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Tracy_Ammonia.png")
+
+date, var = var_fields(df["Time"], df["NO3 mg/L N"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="seagreen")
+ax.set_title("Tracy: Nitrate")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Tracy_Nitrate.png")
+
+date, var = var_fields(df["Time"], df["TP mg/L P"])
+fig, ax = plt.subplots(figsize=(8,4))
+ax.plot(date, var, '-x', color="indianred")
+ax.set_title("Tracy: Total Phosphorus")
+ax.set_ylabel("mg/L")
+fig.savefig(outpath + "figures/Tracy_Phosphorus.png")
+
+### MANTECA NEW FILE
+filename = inpath + "Manteca_2000_2017.csv"
+outfile = outpath + "Manteca.csv"
+df = pd.read_csv(filename, header=3)
+df.rename(columns={'Unnamed: 0': 'Date', 'MGD': 'flow mgd', 'mg/L as N.2': 'NH3 mg/L N', 
+				   'mg/L as N': 'NO3 mg/L N', 'mg/L as N.1': 'NO2 mg/L N', 'Date': 'Time'}, inplace=True)
+header = ["Time", "flow mgd", "NH3 mg/L N", "NO3 mg/L N", "NO2 mg/L N"]
+df.to_csv(outfile, columns=header)
+
+
+

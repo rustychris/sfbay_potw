@@ -32,7 +32,7 @@ def day_ind(dtime):
 
 def day_avg(time, var, ind):
 	date = []
-	dvar = np.zeros(ind[-1])
+	dvar = np.zeros(int(ind[-1]))
 	d = 0 
 	for i in range(int(ind[-1])):
 		date.append(time[d].date())
@@ -54,9 +54,9 @@ varname = "15169_00060"
 dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
 ind = day_ind(dtime)
 dates, ddis = day_avg(dtime, discharge, ind)
-dat_new = {'time': dates,
-		   'flow': ddis}
-df = pd.DataFrame(dat_new, columns=['time','flow'])		   
+dat_new = {'Time': dates,
+		   'flow cfs': ddis}
+df = pd.DataFrame(dat_new, columns=['Time','flow cfs'])		   
 df.to_csv("../outputs/intermediate/delta/SanJoaquinDischarge.csv")
 		   
 #plt.figure()
@@ -70,9 +70,9 @@ varname = "15171_99133"
 dtime, times, nutrients = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
 ind = day_ind(dtime)
 dates, dnut = day_avg(dtime, nutrients, ind)
-dat_new = {'time': dates,
+dat_new = {'Time': dates,
 		   'N+N mg/L N': dnut}
-df = pd.DataFrame(dat_new, columns=['time','N+N mg/L N'])		   
+df = pd.DataFrame(dat_new, columns=['Time','N+N mg/L N'])		   
 df.to_csv("../outputs/intermediate/delta/SanJoaquinNutrients.csv")
 	
 #plt.figure()	
@@ -87,9 +87,9 @@ varname = "176626_00060"
 dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
 ind = day_ind(dtime)
 dates, ddis = day_avg(dtime, discharge, ind)
-dat_new = {'time': dates,
-		   'flow': ddis}
-df = pd.DataFrame(dat_new, columns=['time','flow'])		   
+dat_new = {'Time': dates,
+		   'flow cfs': ddis}
+df = pd.DataFrame(dat_new, columns=['Time','flow cfs'])		   
 df.to_csv("../outputs/intermediate/delta/SacramentoFreeportDischarge.csv")
 	
 #plt.figure()
@@ -103,9 +103,9 @@ varname = "15759_99133"
 dtime, times, nutrients = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
 ind = day_ind(dtime)
 dates, dnut = day_avg(dtime, nutrients, ind)
-dat_new = {'time': dates,
+dat_new = {'Time': dates,
 		   'N+N mg/L N': dnut}
-df = pd.DataFrame(dat_new, columns=['time','N+N mg/L N'])		   
+df = pd.DataFrame(dat_new, columns=['Time','N+N mg/L N'])		   
 df.to_csv("../outputs/intermediate/delta/SacramentoFreeportNutrients.csv")
 	
 #plt.figure()
@@ -119,9 +119,9 @@ varname = "15690_00060"
 dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
 ind = day_ind(dtime)
 dates, ddis = day_avg(dtime, discharge, ind)
-dat_new = {'time': dates,
-		   'flow': ddis}
-df = pd.DataFrame(dat_new, columns=['time','flow'])		   
+dat_new = {'Time': dates,
+		   'flow cfs': ddis}
+df = pd.DataFrame(dat_new, columns=['Time','flow cfs'])		   
 df.to_csv("../outputs/intermediate/delta/SacramentoVeronaDischarge.csv")
 	
 #plt.figure()
