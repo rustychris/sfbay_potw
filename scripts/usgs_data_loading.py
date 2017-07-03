@@ -54,10 +54,10 @@ varname = "15169_00060"
 dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
 ind = day_ind(dtime)
 dates, ddis = day_avg(dtime, discharge, ind)
-dat_new = {'Time': dates,
+dat_new = {'Date': dates,
 		   'flow cfs': ddis}
-df = pd.DataFrame(dat_new, columns=['Time','flow cfs'])		   
-df.to_csv("../outputs/intermediate/delta/SanJoaquinDischarge.csv")
+df1 = pd.DataFrame(dat_new, columns=['Date','flow cfs'])		   
+#df.to_csv("../outputs/intermediate/delta/SanJoaquinDischarge.csv")
 		   
 #plt.figure()
 #plt.plot_date(dtime, discharge, '-')	
@@ -70,10 +70,14 @@ varname = "15171_99133"
 dtime, times, nutrients = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
 ind = day_ind(dtime)
 dates, dnut = day_avg(dtime, nutrients, ind)
-dat_new = {'Time': dates,
+dat_new = {'Date': dates,
 		   'N+N mg/L N': dnut}
-df = pd.DataFrame(dat_new, columns=['Time','N+N mg/L N'])		   
-df.to_csv("../outputs/intermediate/delta/SanJoaquinNutrients.csv")
+df2 = pd.DataFrame(dat_new, columns=['Date','N+N mg/L N'])		   
+#df.to_csv("../outputs/intermediate/delta/SanJoaquinNutrients.csv")
+
+# concatenate and save
+sanj = pd.merge(df1, df2, how='outer', on='Date')
+sanj.to_csv("../outputs/intermediate/delta/SanJoaquin.csv")	
 	
 #plt.figure()	
 #plt.plot_date(ntime, nutrients, '-')	
@@ -87,10 +91,10 @@ varname = "176626_00060"
 dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
 ind = day_ind(dtime)
 dates, ddis = day_avg(dtime, discharge, ind)
-dat_new = {'Time': dates,
+dat_new = {'Date': dates,
 		   'flow cfs': ddis}
-df = pd.DataFrame(dat_new, columns=['Time','flow cfs'])		   
-df.to_csv("../outputs/intermediate/delta/SacramentoFreeportDischarge.csv")
+df1 = pd.DataFrame(dat_new, columns=['Date','flow cfs'])		   
+#df1.to_csv("../outputs/intermediate/delta/SacramentoFreeportDischarge.csv")
 	
 #plt.figure()
 #plt.plot_date(dtime, discharge, '-')
@@ -103,10 +107,10 @@ varname = "15759_99133"
 dtime, times, nutrients = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
 ind = day_ind(dtime)
 dates, dnut = day_avg(dtime, nutrients, ind)
-dat_new = {'Time': dates,
+dat_new = {'Date': dates,
 		   'N+N mg/L N': dnut}
-df = pd.DataFrame(dat_new, columns=['Time','N+N mg/L N'])		   
-df.to_csv("../outputs/intermediate/delta/SacramentoFreeportNutrients.csv")
+df2 = pd.DataFrame(dat_new, columns=['Date','N+N mg/L N'])		   
+#df2.to_csv("../outputs/intermediate/delta/SacramentoFreeportNutrients.csv")
 	
 #plt.figure()
 #plt.plot_date(ntime, nutrients, '-')
@@ -119,11 +123,15 @@ varname = "15690_00060"
 dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzname, varname)
 ind = day_ind(dtime)
 dates, ddis = day_avg(dtime, discharge, ind)
-dat_new = {'Time': dates,
+dat_new = {'Date': dates,
 		   'flow cfs': ddis}
-df = pd.DataFrame(dat_new, columns=['Time','flow cfs'])		   
-df.to_csv("../outputs/intermediate/delta/SacramentoVeronaDischarge.csv")
+df3 = pd.DataFrame(dat_new, columns=['Date','flow cfs'])		   
+#df3.to_csv("../outputs/intermediate/delta/SacramentoVeronaDischarge.csv")
 	
 #plt.figure()
 #plt.plot_date(dtime, discharge, '-')
 #plt.title(filename)
+
+# concatenate and save freeport nutrients and verona discharge *** check about what data to use
+sac = pd.merge(df2, df3, how='outer', on='Date')
+sac.to_csv("../outputs/intermediate/delta/Sacramento.csv")

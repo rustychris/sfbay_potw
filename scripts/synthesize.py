@@ -33,14 +33,7 @@ analytes=['flow',
 # These match the names of the CSV files
 site_names=['Davis', 'Manteca', 'Tracy', 'Stockton', 'RegionalSan', 'Sacramento', 'SanJoaquin']
 ds['site']=( 'site', site_names)
-# CSV filenames 
-site_names_files=['Davis_Ammonia', 'Davis_Flow', 'Davis_Nitrate', 'Davis_Nitrite+Nitrate',
-			'Davis_Nitrite', 'Davis_Phosphorus', 'Manteca_Ammonia', 'Manteca_Flow',
-			'Manteca_Nitrate', 'Manteca_Nitrite+Nitrate', 'Manteca_Nitrite', 
-			'SacramentoFreeportDischarge', 'SacramentoFreeportNutrients', 
-			'SacramentoVeronaDischarge', 'SanJoaquinDischarge', 'SanJoaquinNutrients',
-			'Tracy_Ammonia', 'Tracy_Flow', 'Tracy_Nitrate', 'Tracy_Nitrite+Nitrate',
-			'Tracy_Nitrite', 'Tracy_Phosphorus', 'Tracy', 'RegionalSan', 'Stockton']
+
 			
 # initialize full output array
 for analyte in analytes:
