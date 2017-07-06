@@ -55,8 +55,8 @@ dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzn
 ind = day_ind(dtime)
 dates, ddis = day_avg(dtime, discharge, ind)
 dat_new = {'Date': dates,
-		   'flow cfs': ddis}
-df1 = pd.DataFrame(dat_new, columns=['Date','flow cfs'])		   
+		   'flow mgd': ddis*0.6463}
+df1 = pd.DataFrame(dat_new, columns=['Date','flow mgd'])		   
 #df.to_csv("../outputs/intermediate/delta/SanJoaquinDischarge.csv")
 		   
 #plt.figure()
@@ -92,8 +92,8 @@ dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzn
 ind = day_ind(dtime)
 dates, ddis = day_avg(dtime, discharge, ind)
 dat_new = {'Date': dates,
-		   'flow cfs': ddis}
-df1 = pd.DataFrame(dat_new, columns=['Date','flow cfs'])		   
+		   'flow mgd': ddis*0.6463}
+df1 = pd.DataFrame(dat_new, columns=['Date','flow mgd'])		   
 #df1.to_csv("../outputs/intermediate/delta/SacramentoFreeportDischarge.csv")
 	
 #plt.figure()
@@ -124,8 +124,8 @@ dtime, times, discharge = load_usgs(filename, header, tformat, dname, tname, tzn
 ind = day_ind(dtime)
 dates, ddis = day_avg(dtime, discharge, ind)
 dat_new = {'Date': dates,
-		   'flow cfs': ddis}
-df3 = pd.DataFrame(dat_new, columns=['Date','flow cfs'])		   
+		   'flow mgd': ddis*0.6463}
+df3 = pd.DataFrame(dat_new, columns=['Date','flow mgd'])		   
 #df3.to_csv("../outputs/intermediate/delta/SacramentoVeronaDischarge.csv")
 	
 #plt.figure()
