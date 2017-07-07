@@ -594,7 +594,6 @@ outfile = outpath + "Manteca.csv"
 df = pd.read_csv(filename, header=3)
 df.rename(columns={'Unnamed: 0': 'Date', 'MGD': 'flow mgd', 'mg/L as N.2': 'NH3 mg/L N', 
 				   'mg/L as N': 'NO3 mg/L N', 'mg/L as N.1': 'NO2 mg/L N', 'Date': 'Time'}, inplace=True)
-df["flow mgd"][np.isnan(df["flow mgd"])] = 0
 header = ["Date", "flow mgd", "NH3 mg/L N", "NO3 mg/L N", "NO2 mg/L N"]
 df.to_csv(outfile, columns=header)
 

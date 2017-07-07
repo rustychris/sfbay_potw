@@ -236,9 +236,9 @@ encoding={'time':dict(units="seconds since 1970-01-01 00:00:00")}
 ds.to_netcdf(nc_path,encoding=encoding)
 
 # And write an xls file, too.  Reload from disk to ensure consitency.
-ds=xr.open_dataset(os.path.join(output_dir,'delta_potw.nc'))
+ds=xr.open_dataset(os.path.join(output_dir,'sfbay_potw.nc'))
 
-writer = pd.ExcelWriter( os.path.join(output_dir,'delta_potw.xlsx'))
+writer = pd.ExcelWriter( os.path.join(output_dir,'sfbay_potw.xlsx'))
 
 # Break that out into one sheet per source
 for site_name in ds.site.values:
