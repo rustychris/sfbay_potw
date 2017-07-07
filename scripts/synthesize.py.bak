@@ -229,9 +229,11 @@ for site in ds.site.values:
             ax.plot(dns,trend,'g-',lw=3,label='Trend')
             ax.plot(dns,trend_and_season,color='orange',label='Trend and season')
             
-
-            
-ds.to_netcdf(os.path.join( output_dir,'delta_potw.nc'))
+# keep timebase consistent between files
+nc_path=os.path.join(output_dir,'delta_potw.nc')
+os.path.exists(nc_path) and os.unlink(nc_path)
+encoding={'time':dict(units="seconds since 1970-01-01 00:00:00")}
+ds.to_netcdf(nc_path,encoding=encoding)
 
 # And write an xls file, too.  Reload from disk to ensure consitency.
 ds=xr.open_dataset(os.path.join(output_dir,'delta_potw.nc'))
