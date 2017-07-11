@@ -77,7 +77,7 @@ df2 = pd.DataFrame(dat_new, columns=['Date','N+N mg/L N'])
 
 # concatenate and save
 sanj = pd.merge(df1, df2, how='outer', on='Date')
-sanj.to_csv("../outputs/intermediate/delta/SanJoaquin.csv")	
+sanj.to_csv("../outputs/intermediate/delta/san_joaquin_at_vernalis.csv")	
 	
 #plt.figure()	
 #plt.plot_date(ntime, nutrients, '-')	
@@ -134,4 +134,4 @@ df3 = pd.DataFrame(dat_new, columns=['Date','flow mgd'])
 
 # concatenate and save freeport nutrients and verona discharge *** check about what data to use
 sac = pd.merge(df2, df3, how='outer', on='Date')
-sac.to_csv("../outputs/intermediate/delta/Sacramento.csv")
+sac.to_csv("../outputs/intermediate/delta/sacramento_at_freeport.csv")
