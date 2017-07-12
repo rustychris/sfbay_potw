@@ -5,42 +5,42 @@ import matplotlib.pyplot as plt
 import xarray as xr
 
 def load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname):
-	dat = pd.read_csv(filename, usecols=cols)
-	time = [dt.datetime.strptime(dat[tname][i], tformat) \
-			for i in range(len(dat[tname])) \
-			if (dat[unitsname][i] == units and pd.isnull(dat[method][i]))]
-	var = [dat[varname][i] for i in range(len(dat[varname])) \
-		   if (dat[unitsname][i] == units and pd.isnull(dat[method][i]))]
-	var = np.asarray(var)
-	d = {'Time': pd.Series(time),
-		 vname: pd.Series(var)}
-	df = pd.DataFrame(d)
-	return df
+    dat = pd.read_csv(filename, usecols=cols)
+    time = [dt.datetime.strptime(dat[tname][i], tformat) \
+            for i in range(len(dat[tname])) \
+            if (dat[unitsname][i] == units and pd.isnull(dat[method][i]))]
+    var = [dat[varname][i] for i in range(len(dat[varname])) \
+           if (dat[unitsname][i] == units and pd.isnull(dat[method][i]))]
+    var = np.asarray(var)
+    d = {'Time': pd.Series(time),
+         vname: pd.Series(var)}
+    df = pd.DataFrame(d)
+    return df
 
 def day_ind(time):
-	d = 0 
-	ind = np.zeros(len(time))
-	for i in range(1,len(time)):
-		if time[i].year == time[i-1].year and time[i].month == time[i-1].month and time[i].day == time[i-1].day:
-			ind[i] = d
-		else:
-			d += 1
-			ind[i] = d
-	return ind
+    d = 0 
+    ind = np.zeros(len(time))
+    for i in range(1,len(time)):
+        if time[i].year == time[i-1].year and time[i].month == time[i-1].month and time[i].day == time[i-1].day:
+            ind[i] = d
+        else:
+            d += 1
+            ind[i] = d
+    return ind
 
 def day_avg(time, var, ind):
-	date = []
-	dvar = np.zeros(int(ind[-1]))
-	d = 0 
-	for i in range(int(ind[-1])):
-		date.append(time[d].to_datetime().date())
-		dvar[i] = np.mean(var[np.where(ind==i)[0]])
-		d += len(np.where(ind==i)[0])
-	return date, dvar
-	
-	
+    date = []
+    dvar = np.zeros(int(ind[-1]))
+    d = 0 
+    for i in range(int(ind[-1])):
+        date.append(time[d].to_pydatetime().date())
+        dvar[i] = np.mean(var[np.where(ind==i)[0]])
+        d += len(np.where(ind==i)[0])
+    return date, dvar
+    
+    
 # variables that don't change between wwtp files
-inpath = "../sources/delta_sources/"	
+inpath = "../sources/delta_sources/"    
 outpath = "../outputs/intermediate/delta/"
 tname = "Sampling Date Time"
 tformat = "%m/%d/%Y %H:%M"
@@ -60,14 +60,14 @@ am_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, c
 ind = day_ind(am_df.Time)
 time, am = day_avg(am_df.Time, am_df[vname], ind)
 d = {'Date': pd.Series(time),
-	 vname: pd.Series(am)}
+     vname: pd.Series(am)}
 df1 = pd.DataFrame(d)
 #df1.to_csv(outfile)
 # plotting
 fig, ax = plt.subplots(figsize=(8,4))
 ax.plot(time, am, '-x', color="darkslategray")
 ax.set_title("Davis: Total Ammonia (as N)")
-ax.set_ylabel("mg/L")	
+ax.set_ylabel("mg/L")    
 fig.savefig(outpath + "figures/Davis_Ammonia.png") 
 
 # flow
@@ -79,7 +79,7 @@ flw_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, 
 ind = day_ind(flw_df.Time)
 time, flw = day_avg(flw_df.Time, flw_df[vname], ind)
 d = {'Date': pd.Series(time),
-	 vname: pd.Series(flw)}
+     vname: pd.Series(flw)}
 df2 = pd.DataFrame(d)
 #df2.to_csv(outfile)
 # plotting
@@ -101,7 +101,7 @@ na_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, c
 ind = day_ind(na_df.Time)
 time, na = day_avg(na_df.Time, na_df[vname], ind)
 d = {'Date': pd.Series(time),
-	 vname: pd.Series(na)}
+     vname: pd.Series(na)}
 df3 = pd.DataFrame(d)
 #df3.to_csv(outfile)
 # plotting
@@ -109,7 +109,7 @@ fig, ax = plt.subplots(figsize=(8,4))
 ax.plot(time, na, '-x', color="seagreen")
 ax.set_title("Davis: Total Nitrate (as N)")
 ax.set_ylabel("mg/L")
-fig.savefig(outpath + "figures/Davis_Nitrate.png")	
+fig.savefig(outpath + "figures/Davis_Nitrate.png")    
 
 # concatenate
 davis = pd.merge(davis, df3, how='outer', on='Date')
@@ -123,7 +123,7 @@ ni_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, c
 ind = day_ind(ni_df.Time)
 time, ni = day_avg(ni_df.Time, ni_df[vname], ind)
 d = {'Date': pd.Series(time),
-	 vname: pd.Series(ni)}
+     vname: pd.Series(ni)}
 df4 = pd.DataFrame(d)
 #df4.to_csv(outfile)
 # plotting
@@ -145,7 +145,7 @@ nn_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, c
 ind = day_ind(nn_df.Time)
 time, nn = day_avg(nn_df.Time, nn_df[vname], ind)
 d = {'Date': pd.Series(time),
-	 vname: pd.Series(nn)}
+     vname: pd.Series(nn)}
 df5 = pd.DataFrame(d)
 #df5.to_csv(outfile)
 # plotting
@@ -153,7 +153,7 @@ fig, ax = plt.subplots(figsize=(8,4))
 ax.plot(time, nn, '-x', color="olivedrab")
 ax.set_title("Davis: Nitrite+Nitrate (as N)")
 ax.set_ylabel("mg/L")
-fig.savefig(outpath + "figures/Davis_Nitrite+Nitrate.png")	
+fig.savefig(outpath + "figures/Davis_Nitrite+Nitrate.png")    
 
 # concatenate
 davis = pd.merge(davis, df5, how='outer', on='Date')
@@ -167,8 +167,8 @@ p_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, co
 ind = day_ind(p_df.Time)
 time, p = day_avg(p_df.Time, p_df[vname], ind)
 d = {'Date': pd.Series(time),
-	 vname: pd.Series(p),
-	 'PO4 mg/L P': pd.Series(p/prat)}
+     vname: pd.Series(p),
+     'PO4 mg/L P': pd.Series(p/prat)}
 df6 = pd.DataFrame(d)
 #df6.to_csv(outfile)
 # plotting
@@ -176,7 +176,7 @@ fig, ax = plt.subplots(figsize=(8,4))
 ax.plot(time, p, '-x', color="indianred")
 ax.set_title("Davis: Total Phosphorus (as P)")
 ax.set_ylabel("mg/L")
-fig.savefig(outpath + "figures/Davis_Phosphorus.png")	
+fig.savefig(outpath + "figures/Davis_Phosphorus.png")    
 
 # concatenate
 davis = pd.merge(davis, df6, how='outer', on='Date')
@@ -195,14 +195,14 @@ if 0: # Manteca1.csv is no longer generated.  Using Manteca.csv at bottom of thi
     ind = day_ind(am_df.Time)
     time, am = day_avg(am_df.Time, am_df[vname], ind)
     d = {'Date': pd.Series(time),
-    	 vname: pd.Series(am)}
+         vname: pd.Series(am)}
     df1 = pd.DataFrame(d)
     #df1.to_csv(outfile)
     # plotting
     fig, ax = plt.subplots(figsize=(8,4))
     ax.plot(time, am, '-x', color="darkslategray")
     ax.set_title("Manteca: Total Ammonia (as N)")
-    ax.set_ylabel("mg/L")	
+    ax.set_ylabel("mg/L")    
     fig.savefig(outpath + "figures/Manteca_Ammonia.png")
     
     # flow
@@ -214,7 +214,7 @@ if 0: # Manteca1.csv is no longer generated.  Using Manteca.csv at bottom of thi
     ind = day_ind(flw_df.Time)
     time, flw = day_avg(flw_df.Time, flw_df[vname], ind)
     d = {'Date': pd.Series(time),
-    	 vname: pd.Series(flw)}
+         vname: pd.Series(flw)}
     df2 = pd.DataFrame(d)
     #df2.to_csv(outfile)
     # plotting
@@ -236,7 +236,7 @@ if 0: # Manteca1.csv is no longer generated.  Using Manteca.csv at bottom of thi
     ind = day_ind(na_df.Time)
     time, na = day_avg(na_df.Time, na_df[vname], ind)
     d = {'Date': pd.Series(time),
-    	 vname: pd.Series(na)}
+         vname: pd.Series(na)}
     df3 = pd.DataFrame(d)
     #df3.to_csv(outfile)
     # plotting
@@ -244,7 +244,7 @@ if 0: # Manteca1.csv is no longer generated.  Using Manteca.csv at bottom of thi
     ax.plot(time, na, '-x', color="seagreen")
     ax.set_title("Manteca: Total Nitrate (as N)")
     ax.set_ylabel("mg/L")
-    fig.savefig(outpath + "figures/Manteca_Nitrate.png")	
+    fig.savefig(outpath + "figures/Manteca_Nitrate.png")    
     
     # concatenate
     manteca = pd.merge(manteca, df3, how='outer', on='Date')
@@ -258,7 +258,7 @@ if 0: # Manteca1.csv is no longer generated.  Using Manteca.csv at bottom of thi
     ind = day_ind(ni_df.Time)
     time, ni = day_avg(ni_df.Time, ni_df[vname], ind)
     d = {'Date': pd.Series(time),
-    	 vname: pd.Series(ni)}
+         vname: pd.Series(ni)}
     df4 = pd.DataFrame(d)
     #df4.to_csv(outfile)
     # plotting
@@ -280,7 +280,7 @@ if 0: # Manteca1.csv is no longer generated.  Using Manteca.csv at bottom of thi
     ind = day_ind(nn_df.Time)
     time, nn = day_avg(nn_df.Time, nn_df[vname], ind)
     d = {'Date': pd.Series(time),
-    	 vname: pd.Series(nn)}
+         vname: pd.Series(nn)}
     df5 = pd.DataFrame(d)
     #df5.to_csv(outfile)
     # plotting
@@ -288,7 +288,7 @@ if 0: # Manteca1.csv is no longer generated.  Using Manteca.csv at bottom of thi
     ax.plot(time, nn, '-x', color="olivedrab")
     ax.set_title("Manteca: Nitrite+Nitrate (as N)")
     ax.set_ylabel("mg/L")
-    fig.savefig(outpath + "figures/Manteca_Nitrite+Nitrate.png")	
+    fig.savefig(outpath + "figures/Manteca_Nitrite+Nitrate.png")    
     
     # concatenate
     manteca = pd.merge(manteca, df5, how='outer', on='Date')
@@ -302,7 +302,7 @@ if 0: # Manteca1.csv is no longer generated.  Using Manteca.csv at bottom of thi
     ind = day_ind(n_df.Time)
     time, n = day_avg(n_df.Time, n_df[vname], ind)
     d = {'Date': pd.Series(time),
-    	 vname: pd.Series(n)}
+         vname: pd.Series(n)}
     df6 = pd.DataFrame(d)
     #df6.to_csv(outfile)
     # plotting
@@ -310,7 +310,7 @@ if 0: # Manteca1.csv is no longer generated.  Using Manteca.csv at bottom of thi
     ax.plot(time, n, '-x', color="slateblue")
     ax.set_title("Manteca: Total Nitrogen (as N)")
     ax.set_ylabel("mg/L")
-    fig.savefig(outpath + "figures/Manteca_Nitrogen.png")	
+    fig.savefig(outpath + "figures/Manteca_Nitrogen.png")    
     
     # concatenate
     manteca = pd.merge(manteca, df6, how='outer', on='Date')
@@ -319,149 +319,149 @@ if 0: # Manteca1.csv is no longer generated.  Using Manteca.csv at bottom of thi
     manteca.to_csv(outpath+"manteca1.csv")
 
 ### TRACY
-if 0: # RH: a version of Tracy data based on older files, superseded below
-        # ammonia
-        filename = inpath + "Tracy_5B390108001_Ammonia_Total_as_N.csv"
-        outfile = outpath + "Tracy_Ammonia.csv"
-        units = "mg/L"
-        vname = "NH3 mg/L N"
-        am_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname)
-        ind = day_ind(am_df.Time)
-        time, am = day_avg(am_df.Time, am_df[vname], ind)
-        d = {'Date': pd.Series(time),
-                 vname: pd.Series(am)}
-        df1 = pd.DataFrame(d)
-        #df1.to_csv(outfile)
-        # plotting
-        fig, ax = plt.subplots(figsize=(8,4))
-        ax.plot(time, am, '-x', color="darkslategray")
-        ax.set_title("Tracy: Total Ammonia (as N)")
-        ax.set_ylabel("mg/L")
-        fig.savefig(outpath + "figures/Tracy_Ammonia.png")	
-
-
-        # flow
-        filename = inpath + "Tracy_5B390108001_Flow.csv"
-        outfile = outpath + "Tracy_Flow.csv"
-        units = "MGD"
-        vname = "flow mgd"
-        flw_df = load_wwtp(filename=filename, tname=tname, tformat=tformat, varname=varname, unitsname=unitsname, units=units, method="Analytical Method", cols=[2,5,6,12], vname=vname)
-        ind = day_ind(flw_df.Time)
-        time, flw = day_avg(flw_df.Time, flw_df[vname], ind)
-        d = {'Date': pd.Series(time),
-                 vname: pd.Series(flw)}
-        df2 = pd.DataFrame(d)
-        #df2.to_csv(outfile)
-        # plotting
-        fig, ax = plt.subplots(figsize=(8,4))
-        ax.plot(time, flw, '-x', color="cadetblue")
-        ax.set_title("Tracy: Flow")
-        ax.set_ylabel("MGD")
-        fig.savefig(outpath + "figures/Tracy_Flow.png")
-
-        # concatenate
-        tracy = pd.merge(df1, df2, how='outer', on='Date')
-
-        # nitrate
-        filename = inpath + "Tracy_5B390108001_Nitrate_Total_as_N.csv"
-        outfile = outpath + "Tracy_Nitrate.csv"
-        units = "mg/L"
-        vname = "NO3 mg/L N"
-        na_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname)
-        ind = day_ind(na_df.Time)
-        time, na = day_avg(na_df.Time, na_df[vname], ind)
-        d = {'Date': pd.Series(time),
-                 vname: pd.Series(na)}
-        df3 = pd.DataFrame(d)
-        #df3.to_csv(outfile)
-        # plotting
-        fig, ax = plt.subplots(figsize=(8,4))
-        ax.plot(time, na, '-x', color="seagreen")
-        ax.set_title("Tracy: Total Nitrate (as N)")
-        ax.set_ylabel("mg/L")
-        fig.savefig(outpath + "figures/Tracy_Nitrate.png")
-
-        # concatenate
-        tracy = pd.merge(tracy, df3, how='outer', on='Date')
-
-        # nitrite
-        filename = inpath + "Tracy_5B390108001_Nitrite_Total_as_N.csv"
-        outfile = outpath + "Tracy_Nitrite.csv"
-        units = "mg/L"
-        vname = "NO2 mg/L N"
-        ni_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname)
-        ind = day_ind(ni_df.Time)
-        time, ni = day_avg(ni_df.Time, ni_df[vname], ind)
-        d = {'Date': pd.Series(time),
-                 vname: pd.Series(ni)}
-        df4 = pd.DataFrame(d)
-        #df4.to_csv(outfile)
-        # plotting
-        fig, ax = plt.subplots(figsize=(8,4))
-        ax.plot(time, ni, '-x', color="royalblue")
-        ax.set_title("Tracy: Total Nitrite (as N)")
-        ax.set_ylabel("mg/L")
-        fig.savefig(outpath + "figures/Tracy_Nitrite.png")
-
-        # concatenate
-        tracy = pd.merge(tracy, df4, how='outer', on='Date')
-
-        # nitrite + nitrate
-        filename = inpath + "Tracy_5B390108001_Nitrite+Nitrate_as_N.csv"
-        outfile = outpath + "Tracy_Nitrite+Nitrate.csv"
-        units = "mg/L"
-        vname = "N+N mg/L N"
-        nn_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname)
-        ind = day_ind(nn_df.Time)
-        time, nn = day_avg(nn_df.Time, nn_df[vname], ind)
-        d = {'Date': pd.Series(time),
-                 vname: pd.Series(nn)}
-        df5 = pd.DataFrame(d)
-        #df5.to_csv(outfile)
-        # plotting
-        fig, ax = plt.subplots(figsize=(8,4))
-        ax.plot(time, nn, '-x', color="olivedrab")
-        ax.set_title("Tracy: Nitrite+Nitrate (as N)")
-        ax.set_ylabel("mg/L")
-        fig.savefig(outpath + "figures/Tracy_Nitrite+Nitrate.png")		
-
-        # concatenate
-        tracy = pd.merge(tracy, df5, how='outer', on='Date')
-
-        # phosphorus
-        filename = inpath + "Tracy_5B390108001_Phosphorus_Total_as_P.csv"
-        outfile = outpath + "Tracy_Phosphorus.csv"
-        units = "mg/L"
-        vname = "P mg/L P"
-        p_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname)
-        ind = day_ind(p_df.Time)
-        time, p = day_avg(p_df.Time, p_df[vname], ind)
-        d = {'Date': pd.Series(time),
-                 vname: pd.Series(p),
-                 'PO4 mg/L P': pd.Series(p/prat)}
-        df6 = pd.DataFrame(d)
-        #df6.to_csv(outfile)
-        # plotting
-        fig, ax = plt.subplots(figsize=(8,4))
-        ax.plot(time, p, '-x', color="indianred")
-        ax.set_title("Tracy: Total Phosphorus (as P)")
-        ax.set_ylabel("mg/L")
-        fig.savefig(outpath + "figures/Tracy_Phosphorus.png")	
-
-        # concatenate
-        tracy = pd.merge(tracy, df6, how='outer', on='Date')
-
-        # save final concatenated file
-        tracy.to_csv(outpath+"tracy.csv")
-	
+if 0:
+    # ammonia
+    filename = inpath + "Tracy_5B390108001_Ammonia_Total_as_N.csv"
+    outfile = outpath + "Tracy_Ammonia.csv"
+    units = "mg/L"
+    vname = "NH3 mg/L N"
+    am_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname)
+    ind = day_ind(am_df.Time)
+    time, am = day_avg(am_df.Time, am_df[vname], ind)
+    d = {'Date': pd.Series(time),
+             vname: pd.Series(am)}
+    df1 = pd.DataFrame(d)
+    #df1.to_csv(outfile)
+    # plotting
+    fig, ax = plt.subplots(figsize=(8,4))
+    ax.plot(time, am, '-x', color="darkslategray")
+    ax.set_title("Tracy: Total Ammonia (as N)")
+    ax.set_ylabel("mg/L")
+    fig.savefig(outpath + "figures/Tracy_Ammonia.png")    
+    
+    
+    # flow
+    filename = inpath + "Tracy_5B390108001_Flow.csv"
+    outfile = outpath + "Tracy_Flow.csv"
+    units = "MGD"
+    vname = "flow mgd"
+    flw_df = load_wwtp(filename=filename, tname=tname, tformat=tformat, varname=varname, unitsname=unitsname, units=units, method="Analytical Method", cols=[2,5,6,12], vname=vname)
+    ind = day_ind(flw_df.Time)
+    time, flw = day_avg(flw_df.Time, flw_df[vname], ind)
+    d = {'Date': pd.Series(time),
+             vname: pd.Series(flw)}
+    df2 = pd.DataFrame(d)
+    #df2.to_csv(outfile)
+    # plotting
+    fig, ax = plt.subplots(figsize=(8,4))
+    ax.plot(time, flw, '-x', color="cadetblue")
+    ax.set_title("Tracy: Flow")
+    ax.set_ylabel("MGD")
+    fig.savefig(outpath + "figures/Tracy_Flow.png")
+    
+    # concatenate
+    tracy = pd.merge(df1, df2, how='outer', on='Date')
+    
+    # nitrate
+    filename = inpath + "Tracy_5B390108001_Nitrate_Total_as_N.csv"
+    outfile = outpath + "Tracy_Nitrate.csv"
+    units = "mg/L"
+    vname = "NO3 mg/L N"
+    na_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname)
+    ind = day_ind(na_df.Time)
+    time, na = day_avg(na_df.Time, na_df[vname], ind)
+    d = {'Date': pd.Series(time),
+             vname: pd.Series(na)}
+    df3 = pd.DataFrame(d)
+    #df3.to_csv(outfile)
+    # plotting
+    fig, ax = plt.subplots(figsize=(8,4))
+    ax.plot(time, na, '-x', color="seagreen")
+    ax.set_title("Tracy: Total Nitrate (as N)")
+    ax.set_ylabel("mg/L")
+    fig.savefig(outpath + "figures/Tracy_Nitrate.png")
+    
+    # concatenate
+    tracy = pd.merge(tracy, df3, how='outer', on='Date')
+    
+    # nitrite
+    filename = inpath + "Tracy_5B390108001_Nitrite_Total_as_N.csv"
+    outfile = outpath + "Tracy_Nitrite.csv"
+    units = "mg/L"
+    vname = "NO2 mg/L N"
+    ni_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname)
+    ind = day_ind(ni_df.Time)
+    time, ni = day_avg(ni_df.Time, ni_df[vname], ind)
+    d = {'Date': pd.Series(time),
+             vname: pd.Series(ni)}
+    df4 = pd.DataFrame(d)
+    #df4.to_csv(outfile)
+    # plotting
+    fig, ax = plt.subplots(figsize=(8,4))
+    ax.plot(time, ni, '-x', color="royalblue")
+    ax.set_title("Tracy: Total Nitrite (as N)")
+    ax.set_ylabel("mg/L")
+    fig.savefig(outpath + "figures/Tracy_Nitrite.png")
+    
+    # concatenate
+    tracy = pd.merge(tracy, df4, how='outer', on='Date')
+    
+    # nitrite + nitrate
+    filename = inpath + "Tracy_5B390108001_Nitrite+Nitrate_as_N.csv"
+    outfile = outpath + "Tracy_Nitrite+Nitrate.csv"
+    units = "mg/L"
+    vname = "N+N mg/L N"
+    nn_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname)
+    ind = day_ind(nn_df.Time)
+    time, nn = day_avg(nn_df.Time, nn_df[vname], ind)
+    d = {'Date': pd.Series(time),
+             vname: pd.Series(nn)}
+    df5 = pd.DataFrame(d)
+    #df5.to_csv(outfile)
+    # plotting
+    fig, ax = plt.subplots(figsize=(8,4))
+    ax.plot(time, nn, '-x', color="olivedrab")
+    ax.set_title("Tracy: Nitrite+Nitrate (as N)")
+    ax.set_ylabel("mg/L")
+    fig.savefig(outpath + "figures/Tracy_Nitrite+Nitrate.png")        
+    
+    # concatenate
+    tracy = pd.merge(tracy, df5, how='outer', on='Date')
+    
+    # phosphorus
+    filename = inpath + "Tracy_5B390108001_Phosphorus_Total_as_P.csv"
+    outfile = outpath + "Tracy_Phosphorus.csv"
+    units = "mg/L"
+    vname = "P mg/L P"
+    p_df = load_wwtp(filename, tname, tformat, varname, unitsname, units, method, cols, vname)
+    ind = day_ind(p_df.Time)
+    time, p = day_avg(p_df.Time, p_df[vname], ind)
+    d = {'Date': pd.Series(time),
+             vname: pd.Series(p),
+             'PO4 mg/L P': pd.Series(p/prat)}
+    df6 = pd.DataFrame(d)
+    #df6.to_csv(outfile)
+    # plotting
+    fig, ax = plt.subplots(figsize=(8,4))
+    ax.plot(time, p, '-x', color="indianred")
+    ax.set_title("Tracy: Total Phosphorus (as P)")
+    ax.set_ylabel("mg/L")
+    fig.savefig(outpath + "figures/Tracy_Phosphorus.png")    
+    
+    # concatenate
+    tracy = pd.merge(tracy, df6, how='outer', on='Date')
+    
+    # save final concatenated file
+    tracy.to_csv(outpath+"tracy.csv")
+    
 def var_fields(date, variable):
-        time = []
-	var = []
-	for i in range(len(date)):
-		if np.isnan(float(variable[i]))==False:
-			time.append(dt.datetime.strptime(date[i], "%m/%d/%Y"))
-			var.append(variable[i]) 
-	return time, np.asarray(var)
+    time = []
+    var = []
+    for i in range(len(date)):
+        if np.isnan(float(variable[i]))==False:
+            time.append(dt.datetime.strptime(date[i], "%m/%d/%Y"))
+            var.append(variable[i]) 
+    return time, np.asarray(var)
 
 ### REGIONAL SAN
 filename = inpath + "SacRegional.csv"
@@ -469,9 +469,9 @@ outfile = outpath + "sac_regional.csv" # keep the Sac Regional name as it is cle
 # at least some geographic reference in the name.
 df = pd.read_csv(filename)
 df.rename(columns={'Flow': 'flow mgd', 'NH4_mgL': 'NH4 mg/L N', 
-				   'NO3_mgL': 'NO3 mg/L N', 'NO2_mgL': 'NO2 mg/L N',
-				   'TKN_mgL': 'TKN mg/L N', 'TP_mgL': 'TP mg/L P', 
-				   'PO4_mgL': 'PO4 mg/L P'}, inplace=True)
+                   'NO3_mgL': 'NO3 mg/L N', 'NO2_mgL': 'NO2 mg/L N',
+                   'TKN_mgL': 'TKN mg/L N', 'TP_mgL': 'TP mg/L P', 
+                   'PO4_mgL': 'PO4 mg/L P'}, inplace=True)
 header = ["Date", "flow mgd", "NH3 mg/L N", "NO3 mg/L N", "NO2 mg/L N", "TP mg/L P", "PO4 mg/L P", "TKN mg/L N"]
 df.to_csv(outfile, columns=header)
 # plotting
@@ -516,8 +516,8 @@ filename = inpath + "Stockton Effluent 1992-09 through 2009-03.csv"
 outfile = outpath + "stockton.csv"
 df = pd.read_csv(filename)
 df.rename(columns={'Flow_MGD': 'flow mgd', 'NH3_mgL': 'NH3 mg/L N', 
-				   'NO3_mgL': 'NO3 mg/L N', 'NO2_mgL': 'NO2 mg/L N',
-				   'TKN_mgL': 'TKN mg/L N', 'TP_mgL': 'TP mg/L P'}, inplace=True)
+                   'NO3_mgL': 'NO3 mg/L N', 'NO2_mgL': 'NO2 mg/L N',
+                   'TKN_mgL': 'TKN mg/L N', 'TP_mgL': 'TP mg/L P'}, inplace=True)
 header = ["Date", "flow mgd", "NH3 mg/L N", "NO3 mg/L N", "NO2 mg/L N", "TP mg/L P", "TKN mg/L N"]
 df.to_csv(outfile, columns=header)
 # plotting
@@ -561,7 +561,7 @@ filename = inpath + "tracy.csv"
 outfile = outpath + "tracy.csv"
 df = pd.read_csv(filename)
 df.rename(columns={'Flow': 'flow mgd', 'NH3': 'NH3 mg/L N', 
-				   'NO3': 'NO3 mg/L N', 'TP': 'TP mg/L P'}, inplace=True)
+                   'NO3': 'NO3 mg/L N', 'TP': 'TP mg/L P'}, inplace=True)
 df.to_csv(outfile)
 # plotting
 date, var = var_fields(df["Date"], df["flow mgd"])
@@ -597,7 +597,7 @@ filename = inpath + "Manteca_2000_2017.csv"
 outfile = outpath + "manteca.csv"
 df = pd.read_csv(filename, header=3)
 df.rename(columns={'Unnamed: 0': 'Date', 'MGD': 'flow mgd', 'mg/L as N.2': 'NH3 mg/L N', 
-				   'mg/L as N': 'NO3 mg/L N', 'mg/L as N.1': 'NO2 mg/L N', 'Date': 'Time'}, inplace=True)
+                   'mg/L as N': 'NO3 mg/L N', 'mg/L as N.1': 'NO2 mg/L N', 'Date': 'Time'}, inplace=True)
 df["flow mgd"][np.isnan(df["flow mgd"])] = 0
 header = ["Date", "flow mgd", "NH3 mg/L N", "NO3 mg/L N", "NO2 mg/L N"]
 df.to_csv(outfile, columns=header)
