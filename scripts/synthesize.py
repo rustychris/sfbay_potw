@@ -108,7 +108,7 @@ ds['dnum']=('time',dns)
 ds=ds.set_coords('dnum')
 
 analytes=['flow',
-          'NO3_conc', 'NO2_conc', 'NOx_conc', 'NH3_conc', 'PO4_conc']
+          'NO3_conc', 'NO2_conc', 'NOx_conc', 'NH3_conc', 'NH4_conc', 'PO4_conc']
 		  
 # These match the names of the CSV files
 bay_site_names=['tesoro','american','sasm','novato','sunnyvale',
@@ -133,6 +133,7 @@ for analyte in analytes:
 # set units for clarity upfront
 ds.flow.attrs['units']='m3 s-1'
 ds.NH3_conc.attrs['units']='mg/l N'
+ds.NH4_conc.attrs['units']='mg/l N'
 ds.NO3_conc.attrs['units']='mg/l N'
 ds.NO2_conc.attrs['units']='mg/l N'
 ds.NOx_conc.attrs['units']='mg/l N'
@@ -238,6 +239,11 @@ for site in ds.site:
         nh3=csv['NH3 mg/L N']
         nh3_valid=date_valid & (~nh3.isnull().values)
         set_with_flag('NH3_conc',nh3,nh3_valid)
+
+    if 'NH4 mg/L N' in csv:
+        nh4=csv['NH4 mg/L N']
+        nh4_valid=date_valid & (~nh4.isnull().values)
+        set_with_flag('NH4_conc',nh4,nh4_valid)
         
     if 'PO4 mg/L P' in csv:
         po4=csv['PO4 mg/L P']
@@ -247,7 +253,7 @@ for site in ds.site:
 ##
 
 # compute loads where there is flow and concentration:
-for fld in ['NO3_conc','NO2_conc','NOx_conc','NH3_conc','PO4_conc']:
+for fld in ['NO3_conc','NO2_conc','NOx_conc','NH3_conc', 'NH4_conc', 'PO4_conc']:
     flow_valid=ds['flow_flag'].values>0
     conc_valid=ds[fld+'_flag'].values>0
     load_valid=flow_valid&conc_valid
