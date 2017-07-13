@@ -1,0 +1,43 @@
+Data Sources Info
+
+Davis:
+Davis_5A570100001_Ammonia_Total_as_N : CIWQS
+Davis_5A570100001_Flow : CIWQS
+Davis_5A570100001_Nitrate_Total_as_N : CIWQS
+Davis_5A570100001_Nitrite+Nitrate_as_N : CIWQS
+Davis_5A570100001_Nitrite_Total_as_N : CIWQS
+Davis_5A570100001_Phosphorus_Total_as_P : CIWQS
+
+Manteca: 
+Manteca_5B390104001_Ammonia_Total_as_N : CIWQS
+Manteca_5B390104001_Flow : CIWQS
+Manteca_5B390104001_Nitrate_Total_as_N : CIWQS
+Manteca_5B390104001_Nitrite_Total_as_N : CIWQS
+Manteca_5B390104001_Nitrite+Nitrate_as_N : CIWQS
+Manteca_5B390104001_Nitrogen_Total_as_N : CIWQS
+Manteca_2000_2017 : Direct from Manteca via Heather Grove
+
+Sac Regional: 
+RegionalSan_2012-2017 : Direct from Sac via Timothy D. Mussen
+SacRegional : from Nutrients Google Drive via Emily Novik
+
+Stockton:
+Stockton Effluent 1992-09 through 2009-03 : from Nutrients Google Drive via Emily Novik
+
+Tracy:
+tracy : from Nutrients Google Drive via Emily Novik
+Tracy_5B390108001_Ammonia_Total_as_N : CIWQS
+Tracy_5B390108001_Flow : CIWQS
+Tracy_5B390108001_Nitrate_Total_as_N : CIWQS
+Tracy_5B390108001_Nitrite_Total_as_N : CIWQS
+Tracy_5B390108001_Nitrite+Nitrate_as_N : CIWQS
+Tracy_5B390108001_Phosphorus_Total_as_P : CIWQS
+
+Sacramento River:
+USGS_11425500_Verona_Discharge : USGS
+USGS_11447650_Freeport_Discharge : USGS
+USGS_11447650_Freeport_Nutrients : USGS
+
+San Joaquin River: 
+USGS_11303500_Vernalis_Discharge : USGS
+USGS_11303500_Vernalis_Nutrients : USGS
