@@ -1,0 +1,8 @@
+# Untested, but starting point for requirements to run these scripts
+six
+numpy
+pandas
+xarray
+matplotlib
+gdal
+stompy
