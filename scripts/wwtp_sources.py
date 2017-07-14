@@ -675,11 +675,11 @@ filename = inpath + "SacRegional.csv"
 outfile = outpath + "sac_regional.csv" # keep the Sac Regional name as it is clearer to have
 # at least some geographic reference in the name.
 df1 = pd.read_csv(filename,parse_dates=['Date'])
-df1.rename(columns={'Flow': 'flow mgd', 'NH4_mgL': 'NH4 mg/L N', 
+df1.rename(columns={'Flow': 'flow mgd', 'NH4_mgL': 'NH3 mg/L N', 
                    'NO3_mgL': 'NO3 mg/L N', 'NO2_mgL': 'NO2 mg/L N',
                    'TKN_mgL': 'TKN mg/L N', 'TP_mgL': 'TP mg/L P', 
                    'PO4_mgL': 'PO4 mg/L P'}, inplace=True)
-header = ["Date", "flow mgd", "NH4 mg/L N", "NO3 mg/L N", "NO2 mg/L N", "TP mg/L P", "PO4 mg/L P", "TKN mg/L N"]
+header = ["Date", "flow mgd", "NH3 mg/L N", "NO3 mg/L N", "NO2 mg/L N", "TP mg/L P", "PO4 mg/L P", "TKN mg/L N"]
 df1['Date']=df1.Date.values.astype('M8[D]') # truncate to days
 #df1.to_csv(outfile, columns=header)
 filename = inpath + "RegionalSan_2012-2017.xlsx"
@@ -696,7 +696,7 @@ df2.rename(columns={'Final Effluent Flow, mgd   Daily Avg': 'flow mgd',
                     'Total Phosphorus (as P), mg/l (Final Eff COMP)': 'TP mg/L P',
                     'Phosphate, Diss Ortho (as P) (Final Eff COMP)': 'PO4 mg/L P'}, inplace=True)
 
-header = ["Date", "flow mgd", "NH4 mg/L N", "NH3 mg/L N", "NO3 mg/L N", "NO2 mg/L N", 
+header = ["Date", "flow mgd", "NH3 mg/L N", "NO3 mg/L N", "NO2 mg/L N", 
           "TKN mg/L N", "TP mg/L P", "PO4 mg/L P"]
 df = pd.concat([df1, df2])
 df.to_csv(outfile, columns=header)
