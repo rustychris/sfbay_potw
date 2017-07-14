@@ -165,6 +165,8 @@ FLAG_MEAN=32
 FLAG_CLIPPED=64 # this one actually does get used as a bitmask.
 FLAG_DELTA_DATA=128
 
+# These may be joined by an underscore later on if multiple flags apply,
+# so use camel-case to join words
 flag_bits=['LoadingStudy','HDR','Summer0','Trend','Interp','Mean','Clipped','Delta']
 
 ## 
@@ -487,6 +489,8 @@ locs=wkb2shp.shp2geom('../sources/discharge_approx_locations.shp')
 
 ds['utm_x']=( ('site',), np.nan * np.ones(len(ds.site)))
 ds['utm_y']=1*ds.utm_x
+# None is better than "" here, as it does not impose a field length
+ds['name']=( ('site',), [None]*len(ds.site))
 
 print("Discharges in discharge_approx_locations.shp, but not in sfbay_potw data")
 for rec in locs:
@@ -494,9 +498,11 @@ for rec in locs:
         print("    '%s'"%rec['short_name'])
         continue
     xy=np.array(rec['geom'].centroid)
-    
-    ds['utm_x'].loc[ dict(site=rec['short_name']) ]=xy[0]
-    ds['utm_y'].loc[ dict(site=rec['short_name']) ]=xy[1]
+
+    sel=dict(site=rec['short_name'])
+    ds['utm_x'].loc[sel]=xy[0]
+    ds['utm_y'].loc[sel]=xy[1]
+    ds['name'].loc[sel]=rec['name']
 
 missing=ds['site'][ np.isnan(ds['utm_x'].values) ].values
 if len(missing):
@@ -527,16 +533,37 @@ standards={'NO3':'mass_concentration_of_nitrate_in_sea_water',
            'NO2':'mass_concentration_of_nitrite_in_sea_water',
            'TSS':'mass_concentration_of_suspended_solids_in_sea_water',
            'temperature':'sea_water_temperature'}
-           
-def fix_names(ds):
-    # fix up units - 
-    real_vars=[col
-               for col in ds.data_vars.keys()
-               if not col.endswith('flag') and col!='site_type' ]
 
-    for v in real_vars:
+
+
+def add_bitmask_metadata(da,
+                         bit_meanings=['b1','b2','b4','b8','b16','b32','b64','b128']):
+    """
+    da: DataArray
+    bit_meanings: 
+    """
+    assert( np.issubdtype(da.dtype.type,np.integer) )
+    uniq_vals=np.unique(np.asarray(da))
+    meanings=[]
+    for val in uniq_vals:
+        if val==0:
+            meanings.append("unset")
+        else:
+            meaning = [m
+                       for i,m in enumerate(bit_meanings)
+                       if val & (1<<i)]
+            meanings.append( "_".join(meaning) )
+    da.attrs['flag_values']=uniq_vals
+    da.attrs['flag_meanings']=" ".join(meanings)
+
+if 1: # fix names, bitmask metadata
+    # fix up units - 
+    for v in ds.data_vars.keys():
+        if v.endswith('flag') or v in ['site_type','name']:
+            continue
+
         # Newer code discards most of the weird things in glossary, but
-        # this code in place for the future.
+        # this code is in place for the future.
         
         # Use glossary dict to write nicer long names
         long_name=v
@@ -550,46 +577,19 @@ def fix_names(ds):
                 ds[v].attrs['standard_name']=standards[k]
                 print("  set standard name to %s"%ds[v].attrs['standard_name'])
 
+        # Handle the flags field
         ds[v].attrs['long_name']=long_name
         flag_name="%s_flag"%(v)
         if flag_name in ds:
             ds[v].attrs['flags']=flag_name
             ds[flag_name].attrs['long_name']="Flags for %s"%v
 
-        add_bitmask_metadata(ds[flag_name],
-                             bit_meanings=['source_loading_study',
-                                           'source_hdr',
-                                           'seasonal_zero',
-                                           'monthly_climatology',
-                                           'interpolated',
-                                           'mean_value','clipped',
-                                           'source_delta',
-                                           'seasonal_zero'])
-
-def add_bitmask_metadata(da,
-                         bit_meanings=['b1','b2','b4','b8','b16','b32','b64','b128']):
-    """
-    da: DataArray
-    bit_meanings: 
-    """
-    assert( np.issubdtype(da.dtype.type,np.integer) )
-    uniq_vals=np.unique(np.asarray(da))
-    meanings=[]
-    for val in uniq_vals:
-        if val==0:
-            meanings.append(bit_meanings[0])
-        else:
-            meaning = [m
-                       for i,m in enumerate(bit_meanings[1:])
-                       if val & (1<<i)]
-            meanings.append( "_".join(meaning) )
-    da.attrs['flag_values']=uniq_vals
-    da.attrs['flag_meanings']=" ".join(meanings)
+            add_bitmask_metadata(ds[flag_name],
+                                 bit_meanings=flag_bits)
 
 ##
 
 # closer to standard:
-fix_names(ds)
 
 utm=osr.SpatialReference()
 utm.SetFromUserInput('EPSG:26910')
