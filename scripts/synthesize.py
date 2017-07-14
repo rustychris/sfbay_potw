@@ -249,7 +249,7 @@ for site in ds.site:
 ##
 
 # compute loads where there is flow and concentration:
-for fld in ['NO3_conc','NO2_conc','NOx_conc','NH3_conc','PO4_conc']:
+for fld in ['NO3_conc','NO2_conc','NOx_conc','NH3_conc', 'PO4_conc']:
     flow_valid=ds['flow_flag'].values>0
     conc_valid=ds[fld+'_flag'].values>0
     load_valid=flow_valid&conc_valid
