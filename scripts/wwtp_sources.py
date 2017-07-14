@@ -60,8 +60,9 @@ def var_fields(date, variable):
 def data_fill(colname1, colname2, df):
     col1 = df[colname1]
     col2 = df[colname2]
-    ind = np.where(pd.isnull(col1))
-    col1[ind[0]] = col2[ind[0]]
+    sel = pd.isnull(col1)
+    # .loc syntax avoids pandas warnings
+    df.loc[sel,colname1] = col2[sel]
     return df
 
 ### variables that don't change between wwtp files
@@ -710,7 +711,7 @@ ax.set_title("Sac Regional: Flow")
 ax.set_ylabel("MGD")
 fig.savefig(outpath + "figures/RegionalSan_Flow.png")
 
-date, var = var_fields(df["Date"], df["NH4 mg/L N"])
+date, var = var_fields(df["Date"], df["NH3 mg/L N"])
 fig, ax = plt.subplots(figsize=(8,4))
 ax.plot(date, var, '-x', color="darkslategray")
 ax.set_title("Sac Regional: Ammonium")

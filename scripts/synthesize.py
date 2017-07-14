@@ -145,10 +145,9 @@ for v in ds.data_vars:
         ds[vload]= ds[v].copy()
         ds[vload].attrs['units']='kg/day '+ds[v].attrs['units'].split()[1]
 
-# Doesn't seem like anything is using NH4
-# ds.NH4_conc.attrs['units']='mg/l N'
-# NN is a synonym for NOx
-# ds.NN_conc.attrs['units']='mg/l N'
+# Other analytes from previous versions:
+# NH4: considered a synonym for NH3
+# NN: a synonym for NOx
 
 # setup flag entries
 for v in ds.data_vars.keys():
