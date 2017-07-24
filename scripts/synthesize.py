@@ -120,7 +120,7 @@ bay_site_names=['tesoro','american','sasm','novato','sunnyvale',
                 'chevron','sf_southeast','shell','mt_view','marin5','san_jose',
                 'south_sf','ch','treasure_island','false_sj','false_sac' ]
 delta_site_names=['davis', 'manteca', 'tracy', 'stockton', 'sac_regional',
-                  'sacramento', 'san_joaquin_at_vernalis']
+                  'sacramento_at_verona', 'san_joaquin_at_vernalis']
 site_names=bay_site_names + delta_site_names
 
 ds['site']=('site', site_names)
@@ -474,7 +474,7 @@ for s in ['false_sac','false_sj']:
 for s in ['manteca','davis','tracy','stockton','sac_regional']: # Delta sources
     ds.site_type.loc[s]='potw'
     
-for s in ['sacramento','san_joaquin_at_vernalis']:
+for s in ['sacramento_at_verona','san_joaquin_at_vernalis']:
     ds.site_type.loc[s]='river'
     
 for st in np.unique( ds.site_type.values ):
@@ -505,7 +505,7 @@ for rec in locs:
 
 missing=ds['site'][ np.isnan(ds['utm_x'].values) ].values
 if len(missing):
-    print("Sites in sfbay_potw data, but without a location from discharge_approx_locations.shp")
+    print("%d sites in sfbay_potw data, but without a location from discharge_approx_locations.shp"%(len(missing)))
     print(",".join(missing))
 else:
     print("All site in sfbay_potw matched with a lat/lon")

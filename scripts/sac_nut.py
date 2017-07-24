@@ -226,7 +226,7 @@ sac = pd.merge(sac, df6, how='outer', on='Date')
 
 sac['Date']=utils.to_dt64(sac.Date.values) # standardize type for Date
 # save final concatenated file
-sac.to_csv(outpath+"sacramento.csv")
+sac.to_csv(outpath+"sacramento_at_verona.csv")
 
 plt.close('all') # helps with memory use
 
