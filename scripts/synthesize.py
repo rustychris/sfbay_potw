@@ -588,6 +588,34 @@ if 1: # fix names, bitmask metadata
 
 ##
 
+# NOx is by definition greater than or equal to NO3.
+# For any concentrations or loads for which that is not true,
+# adjust both
+
+
+# Make sure that loads and concentrations are in agreement up to
+# this point:
+# And they're not even close!
+
+# Where we have NOx_conc but not NO3, copy it, and vice versa.
+for fld_no3,fld_nox in [ ('NO3_conc','NOx_conc'),
+                         ('NO3_load','NOx_load') ]:
+    no_no3 = np.isnan(ds[fld_no3].values) & np.isfinite(ds[fld_nox].values)
+    ds[fld_no3].values[no_no3] = ds[fld_nox].values[no_no3]
+    print("%d values copied from NOx to NO3"%no_no3.sum().item())
+
+    no_nox = np.isnan(ds[fld_nox]).values & np.isfinite(ds[fld_no3]).values
+    ds[fld_nox].values[no_nox] = ds[fld_no3].values[no_nox]
+    print("%d values copied from NO3 to NOx"%no_nox.sum().item())
+
+    bad_nitro = (ds[fld_no3] > ds[fld_nox]).values
+    print("%d values averaged between NO3 and NOx"%bad_nitro.sum().item())
+
+    mid_nitro = (ds[fld_no3] + ds[fld_nox]).values
+    ds[fld_no3].values[bad_nitro]=mid_nitro[bad_nitro]
+    ds[fld_nox].values[bad_nitro]=mid_nitro[bad_nitro]
+
+## 
 # closer to standard:
 
 utm=osr.SpatialReference()
