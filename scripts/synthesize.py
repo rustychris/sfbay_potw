@@ -4,6 +4,7 @@ be missing many data points, synthesize a full data record, and write
 netcdf and Excel outputs.
 """
 
+
 from __future__ import print_function
 import six
 import numpy as np
@@ -16,6 +17,8 @@ import datetime
 from osgeo import osr
 from stompy import utils,filters
 from stompy.spatial import wkb2shp, proj_utils
+
+import nitrogen_utils
 
 ##
 
@@ -372,8 +375,14 @@ for hdr_name,ls_name in six.iteritems(hdr_name_map):
 
 
 
-## 
+##
 
+# total headache to work through making NOx, NO2 and NO3 self-consistent.
+# This could use some real refactoring.
+
+nitrogen_utils.make_nitrogen_consistent(ds)
+
+##
 # The interpolation step - building off of synth_v02.py
 
 fields=[s for s in ds.data_vars if not s.endswith('_flag')]
@@ -588,32 +597,32 @@ if 1: # fix names, bitmask metadata
 
 ##
 
-# NOx is by definition greater than or equal to NO3.
-# For any concentrations or loads for which that is not true,
-# adjust both
+if 0: # This should be handled before interpolation now.
+    # NOx is by definition greater than or equal to NO3.
+    # For any concentrations or loads for which that is not true,
+    # adjust both
 
 
-# Make sure that loads and concentrations are in agreement up to
-# this point:
-# And they're not even close!
+    # Wanted to make sure that loads and concentrations are in agreement up to
+    # this point: they're not even close!  A problem for another day.  Filed as bug.
 
-# Where we have NOx_conc but not NO3, copy it, and vice versa.
-for fld_no3,fld_nox in [ ('NO3_conc','NOx_conc'),
-                         ('NO3_load','NOx_load') ]:
-    no_no3 = np.isnan(ds[fld_no3].values) & np.isfinite(ds[fld_nox].values)
-    ds[fld_no3].values[no_no3] = ds[fld_nox].values[no_no3]
-    print("%d values copied from NOx to NO3"%no_no3.sum().item())
+    # Where we have NOx_conc but not NO3, copy it, and vice versa.
+    for fld_no3,fld_nox in [ ('NO3_conc','NOx_conc'),
+                             ('NO3_load','NOx_load') ]:
+        no_no3 = np.isnan(ds[fld_no3].values) & np.isfinite(ds[fld_nox].values)
+        ds[fld_no3].values[no_no3] = ds[fld_nox].values[no_no3]
+        print("%d values copied from NOx to NO3"%no_no3.sum().item())
 
-    no_nox = np.isnan(ds[fld_nox]).values & np.isfinite(ds[fld_no3]).values
-    ds[fld_nox].values[no_nox] = ds[fld_no3].values[no_nox]
-    print("%d values copied from NO3 to NOx"%no_nox.sum().item())
+        no_nox = np.isnan(ds[fld_nox]).values & np.isfinite(ds[fld_no3]).values
+        ds[fld_nox].values[no_nox] = ds[fld_no3].values[no_nox]
+        print("%d values copied from NO3 to NOx"%no_nox.sum().item())
 
-    bad_nitro = (ds[fld_no3] > ds[fld_nox]).values
-    print("%d values averaged between NO3 and NOx"%bad_nitro.sum().item())
+        bad_nitro = (ds[fld_no3] > ds[fld_nox]).values
+        print("%d values averaged between NO3 and NOx"%bad_nitro.sum().item())
 
-    mid_nitro = (ds[fld_no3] + ds[fld_nox]).values
-    ds[fld_no3].values[bad_nitro]=mid_nitro[bad_nitro]
-    ds[fld_nox].values[bad_nitro]=mid_nitro[bad_nitro]
+        mid_nitro = (ds[fld_no3] + ds[fld_nox]).values
+        ds[fld_no3].values[bad_nitro]=mid_nitro[bad_nitro]
+        ds[fld_nox].values[bad_nitro]=mid_nitro[bad_nitro]
 
 ## 
 # closer to standard:
