@@ -18,6 +18,7 @@ from __future__ import print_function
 import pandas as pd
 import numpy as np
 import os
+import re
 import six
 
 # configure paths
@@ -1052,6 +1053,96 @@ for blk_start,blk_end in zip(block_starts,block_ends):
     blocks.append(blk_df)
 
 
+#  A few minor data cleaning steps, per an email with Mike Falk, possible 
+#  steps are:
+#  
+#   * Paradise Cove and Tiburon have some periods of missing flow
+#     data. Use the average of flows from that month, but in other
+#     years.  Since this is largely what will be done in synthesize,
+#     don't worry about it here.
+#
+#   * For months missing a load but having a flow, calculate
+#     concentration from adjacent months, combine with flow to get
+#     load.
+#
+#   * Crockett has only two data points for load - better to calculate
+#     a mean concentration, apply it for the rest of the time.
+
+# These are just as well handled in the synthesize code as here.
+## 
+def xl_to_num(s):
+    # return zero-based tuple of indices
+    m=re.match("([a-zA-Z]+)([0-9]+)",s)
+    col_letters=m.group(1).lower()
+    col_nums=[(ord(letter)-ord('a')+1)*(26**i) for i,letter in enumerate(col_letters[::-1])]
+    col_num=np.sum(col_nums)-1 # 'a' is 0, but 'aa' is 26
+    row_num=int(m.group(2))-1 # make that zero-based
+    return row_num,col_num
+
+# Bring in the updated 2016-17 HDR data
+xl_fn="../sources/BACWA_GAR_4SFEI.XLSM"
+
+def xl_block_to_dataframe(xl_block,sheetname):
+    """
+    Extract POTW data from BACWA_GAR_4SFEI.XLM spreadsheet.
+    Assumes the format - nothing smart here.
+    Returns a dataframe with month,year,mon_year,analyte
+    columns, plus a column for each site, and each row
+    is a particular period (1 month averages)
+    """
+    ul,lr=xl_block.split(':')
+    ul=xl_to_num(ul)
+    lr=xl_to_num(lr)
+
+
+    # F51:AW65 (upper left is the column holding the numeric month,
+    # and the row containing the analyte)
+    raw_df=pd.read_excel(xl_fn,sheetname=sheetname, # "Copied2016_2017Load"
+                         header=None,
+                         parse_cols=list(range(ul[1],lr[1]+1)),
+                         skiprows=ul[0])
+    raw=raw_df.values[:lr[0]-ul[0]+1] # read_excel doesn't limit rows
+    n_hdr_rows=3 # analyte, long name, short name
+    data_start_col=10
+
+    Nsites=raw.shape[1] - data_start_col
+
+    blk_unit=raw[0,1]
+    blk_var=raw[0,data_start_col]
+    long_names=raw[1,data_start_col:] # e.g. American Canyon WWTP
+    short_names=raw[2,data_start_col:] # e.g. American Canyon
+
+    data_blk=raw[n_hdr_rows:]
+
+    blk_df=pd.DataFrame()
+    blk_df['month']=data_blk[:,0]
+    blk_df['year']=data_blk[:,1]
+    # blk_df['mon_year']=data_blk[:,2]
+    blk_df['analyte']=blk_var+"_"+blk_unit
+
+    for site_i in range(Nsites):
+        blk_df[short_names[site_i]]=data_blk[:,data_start_col+site_i]
+    return blk_df
+
+# The formatting is subtly different between each sheet, so
+# just grab this one year, and use the existing sheet for the
+# previous years.
+# It does work as is for sheets 4,5
+sheet=5
+for xl_block in ["F51:AW65", # flow
+                 "F69:AW83", # ammonia, total
+                 "F87:AW101", # nitrite plus nitrate
+                 "F105:AW119", # total nitrogen
+                 "F123:AW137", # ortho-PO4
+                 "F141:AW155", # total phosphorus
+                 "F159:AW173"]: # TKN
+    blk_df=xl_block_to_dataframe(xl_block,sheet) # flow
+    print("Extracted %12s to %d rows of %s"%(xl_block,len(blk_df),blk_df.analyte[0]))
+
+    blocks.append(blk_df)
+
+## resume old code
+
 # time and analyte are in rows, station is in columns
 df=pd.concat(blocks)
 
@@ -1076,55 +1167,29 @@ df6['year'] = df6.year.astype('i4')
 # make sure we didn't accidentally drop some
 assert len(df6.analyte.unique()) == len(df5.analyte.unique())
 
-
-#  A few minor data cleaning steps, per an email with Mike Falk, possible 
-#  steps are:
-#  
-#   * Paradise Cove and Tiburon have some periods of missing flow
-#     data. Use the average of flows from that month, but in other
-#     years.  Since this is largely what will be done in synthesize,
-#     don't worry about it here.
-#
-#   * For months missing a load but having a flow, calculate
-#     concentration from adjacent months, combine with flow to get
-#     load.
-#
-#   * Crockett has only two data points for load - better to calculate
-#     a mean concentration, apply it for the rest of the time.
-
-# These are just as well handled in the synthesize code as here.
 ## 
-
-# # Bring in the updated 2016-17 HDR data
-# xl_fn="../sources/BACWA_GAR_4SFEI.XLSM"
-# raw_df=pd.read_excel(xl_fn,sheetname=4, # "Copied2016_2017Load"
-#                      header=None,parse_cols="F:AW",skiprows=15)
-# raw=raw_df.values
-
-## 
+df7=df6.copy()
 
 # need to fix the datatypes of year,value
-missing=df6.value=='--'
-df6.loc[missing,'value']=np.nan
+missing=df7.value=='--'
+df7.loc[missing,'value']=np.nan
 print("%d missing values: -- => nan"%np.sum(missing))
-display(df6.loc[missing,:].groupby(['site','analyte']).sum())
+print(df7.loc[missing,:].groupby(['site','analyte']).sum())
 
-nd=df6.value=='ND'
-df6.loc[nd,'value']=0.0 # one point - don't worry about it
+nd=df7.value=='ND'
+df7.loc[nd,'value']=0.0 # one point - don't worry about it
 print("%d nondetect values: ND => 0"%np.sum(nd))
-display(df6.loc[nd,:].groupby(['site','analyte']).sum())
+print(df7.loc[nd,:].groupby(['site','analyte']).sum())
 
-for v in df6.value:
+for v in df7.value:
     try:
         float(v)
     except:
         print(v)
         
-df6['value']=df6.value.astype('f4')
+df7['value']=df7.value.astype('f4')
 
+## 
 
-# In[ ]:
-
-
-df6.to_csv(os.path.join(compile_path,'hdr_parsed_long.csv'),index=False)
+df7.to_csv(os.path.join(compile_path,'hdr_parsed_long.csv'),index=False)
 
