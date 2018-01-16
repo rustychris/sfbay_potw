@@ -1188,6 +1188,7 @@ for v in df7.value:
         print(v)
         
 df7['value']=df7.value.astype('f4')
+df7['month']=df7.month.astype('i4') # why was this float?
 
 ## 
 
