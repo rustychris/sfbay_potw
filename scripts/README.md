@@ -5,11 +5,10 @@ a manual process currently:
 Initial compilation:
    compile_delta_at_confluence.ipynb
    
-   compile_bay_potw.ipynb
-     Notebook - this single notebook handles the steps of converting units and corrections
+   compile_bay_potw.py
+     Handles the steps of converting units and corrections
      to source data (primarily Loading Study data), and writing out an intermediate csv file.
-     Pretty sure this is actively used.  HDR data appears to be handled as a separate file, 
-     rather than merged into each discharger's CSV.
+     HDR data is handled as a separate file, rather than merged into each discharger's CSV.
    
    wwtp_sources.py
      Process source data for Delta WWTPs into standardized intermediate CSV files.
@@ -33,13 +32,8 @@ Final synthesis and output:
 Not maintained or currently used, or in the case of the csv file, an extraneous output
 no longer needed.
 
-data_overview_00.ipynb
-master_post2012.py
-plot_compiled.py
 sites_hdr_to_local.csv
   Maps source names in the HDR dataset to the names used in the output.
-  
-synth_ocean_dfm.py
 
 
 
