@@ -20,7 +20,7 @@ from stompy.spatial import wkb2shp, proj_utils
 
 import nitrogen_utils
 
-##
+#
 
 # Settings for file locations, time period
 compile_dir="../outputs/intermediate"
@@ -96,7 +96,7 @@ def add_summer_noflow(site,gap_days=45,day_start=100,day_end=305):
     ds.flow.sel(site=site).values[gap_mask] = 0
     ds.flow_flag.sel(site=site).values[gap_mask] = FLAG_SUMMER_ZERO
 
-##
+## 
 
 # Initialize dataset, timeline, basic fields
 
@@ -111,7 +111,7 @@ ds['dnum']=('time',dns)
 ds=ds.set_coords('dnum')
 
 analytes=['flow',
-          'NO3_conc', 'NO2_conc', 'NOx_conc', 'NH3_conc', 'PO4_conc']
+          'NO3_conc', 'NO2_conc', 'NOx_conc', 'NH3_conc', 'PO4_conc', 'SiO2_conc']
 		  
 # These match the names of the CSV files
 bay_site_names=['tesoro','american','sasm','novato','sunnyvale',
@@ -140,6 +140,7 @@ ds.NO3_conc.attrs['units']='mg/l N'
 ds.NO2_conc.attrs['units']='mg/l N'
 ds.NOx_conc.attrs['units']='mg/l N'
 ds.PO4_conc.attrs['units']='mg/l P'
+ds.SiO2_conc.attrs['units']='mg/l Si'
 
 # Add associated load variables for each of the analyte concentrations:
 for v in ds.data_vars:
@@ -248,21 +249,25 @@ for site in ds.site:
         po4_valid=date_valid & (~po4.isnull().values)
         set_with_flag('PO4_conc',po4,po4_valid)
 
-##
+## 
 
-# compute loads where there is flow and concentration:
-for fld in ['NO3_conc','NO2_conc','NOx_conc','NH3_conc', 'PO4_conc']:
-    flow_valid=ds['flow_flag'].values>0
-    conc_valid=ds[fld+'_flag'].values>0
-    load_valid=flow_valid&conc_valid
+# Don't do this -- rather, base any extrapolation on the quantity
+# that was measured, then only at the end do we change to loads
+# if it started as concentrations
 
-    load= (  ds[fld].values[load_valid] 
-             * ds['flow'].values[load_valid] )
-    #  ...  L/m3   s/day   kg/mg  
-    load *= 1e3  * 86400 * 1e-6
-    fld_load=fld.replace('_conc','_load')
-    ds[fld_load].values[load_valid]=load
-    ds[fld_load+'_flag'].values[load_valid]=ds[fld+'_flag'].values[load_valid]
+# # compute loads where there is flow and concentration:
+# for fld in ['NO3_conc','NO2_conc','NOx_conc','NH3_conc', 'PO4_conc']:
+#     flow_valid=ds['flow_flag'].values>0
+#     conc_valid=ds[fld+'_flag'].values>0
+#     load_valid=flow_valid&conc_valid
+# 
+#     load= (  ds[fld].values[load_valid] 
+#              * ds['flow'].values[load_valid] )
+#     #  ...  L/m3   s/day   kg/mg  
+#     load *= 1e3  * 86400 * 1e-6
+#     fld_load=fld.replace('_conc','_load')
+#     ds[fld_load].values[load_valid]=load
+#     ds[fld_load+'_flag'].values[load_valid]=ds[fld+'_flag'].values[load_valid]
 
 ##
 
@@ -283,47 +288,9 @@ hdr['dn_start']=utils.to_dnum( np.array(month_starts))
 # bring in HDR data
 sites=hdr.site.unique()
 
-if 0: # first time generating the mapping of HDR to locally defined sites
-    hdr_name_map=dict(zip(sites,[s.lower() for s in sites]))
-    hdr_name_map['American Canyon']='american'
-    hdr_name_map['CMSA']='central_marin'
-    hdr_name_map['Delta Diablo']='ddsd'
-    hdr_name_map['Fairfield-Suisun']='fs'
-    hdr_name_map['Las Gallinas']='lg'
-    hdr_name_map['Mt View']='mt_view'
-    hdr_name_map['Palo Alto']='palo_alto'
-    hdr_name_map['San Jose/Santa Clara']='san_jose'
-    hdr_name_map['San Mateo']='san_mateo'
-    hdr_name_map['SFO Airport']='sfo'
-    hdr_name_map['SFPUC Southeast Plant']='sf_southeast'
-    hdr_name_map['Sonoma Valley']='sonoma_valley'
-    hdr_name_map['South SF']='south_sf'
-    hdr_name_map['Treasure Island']='treasure_island'
-    hdr_name_map['West County']='west_county_richmond'
-    hdr_name_map['SVCW']='south_bayside' # silicon valley clean water - new name for south_bayside
-    hdr_name_map['SMCSD']= 'sausalito' # 
-    hdr_name_map['Crockett CSD Port Costa'] = 'ch' # right?
-
-    # These are in the HDR data, but ambiguous in the loading study:
-    #  Tiburon, Paradise Cove.  Both are ostensibly Marin SD 5.  Paradise Cove
-    #  has extremely small flows in the HDR data.  Tiburon is a good match for
-    #  the constant values in the Loading Study.
-    hdr_name_map['Tiburon'] = 'marin5'
-    # hdr_name_map['Paradise Cove']= 'marin5'# but Tiburon is also Marin SD 5...
-
-    # These are in the Loading study, but not HDR:
-    # refineries: tesoro, valero, phillips66, chevron, shell
-    # potws: st_helena, yountville, calistoga - all up Napa, right?
-    # false: false_sj, false_sac
-
-    unmapped = [site.item() for site in ds.site
-                if site.item() not in hdr_name_map.values()]
-    print("Sites which had no HDR data: %s"%( ", ".join(unmapped) ))
-else:
-    # Read mapping from sites_hdr_to_local.csv
-    # Used to write a pickle file, but that was relevant only for sidestream project.
-    hdr_name_map=dict([ [s.strip() for s in line.split(',')]
-                        for line in open('sites_hdr_to_local.csv')])
+# Read mapping from sites_hdr_to_local.csv
+hdr_name_map=dict([ [s.strip() for s in line.split(',')]
+                    for line in open('sites_hdr_to_local.csv')])
 
 # iterate over hdr names and their local ('loading study') equivalents
 for hdr_name,ls_name in six.iteritems(hdr_name_map):
@@ -357,111 +324,224 @@ for hdr_name,ls_name in six.iteritems(hdr_name_map):
         from_hdr('PO4_load','diss_OrthoP_kgP_per_day')
         # TKN is also in there, but we're not yet worrying about it.
 
-        # and the conversion to conc:
-        def to_conc(ds_fld):
-            flow = ds_site['flow'].values[time_slc] # m3/s
-            load = ds_site[ds_fld+'_load'].values[time_slc] # kg X / day
-            # convert to g/m3
-            with np.errstate(all='ignore'): # don't tell me about division by zero
-                conc = (load * 1000.) / (flow*86400.)
-                conc[ flow==0.0] = 0.0
-            #    (kgX/d) * g/kg / (m3/s * s/day) => gX / m3
-            ds_site[ds_fld+'_conc'].values[time_slc] = conc
-            ds_site[ds_fld+'_conc_flag'].values[time_slc] = FLAG_HDR
+        # # HERE - likewise, don't do this conversion yet, either
+        # # and the conversion to conc:
+        # def to_conc(ds_fld):
+        #     flow = ds_site['flow'].values[time_slc] # m3/s
+        #     load = ds_site[ds_fld+'_load'].values[time_slc] # kg X / day
+        #     # convert to g/m3
+        #     with np.errstate(all='ignore'): # don't tell me about division by zero
+        #         conc = (load * 1000.) / (flow*86400.)
+        #         conc[ flow==0.0] = 0.0
+        #     #    (kgX/d) * g/kg / (m3/s * s/day) => gX / m3
+        #     ds_site[ds_fld+'_conc'].values[time_slc] = conc
+        #     ds_site[ds_fld+'_conc_flag'].values[time_slc] = FLAG_HDR
+        # 
+        # to_conc('NOx')
+        # to_conc('NH3')
+        # to_conc('PO4')
 
-        to_conc('NOx')
-        to_conc('NH3')
-        to_conc('PO4')
+## 
 
+# Read in the previously-composited San Joaquin River at Vernalis
+# nutrient data
+sj=pd.read_csv('../outputs/intermediate/delta/san_joaquin_composite_conc_zz.csv')
+sj.rename(columns={sj.columns[0]:'Date'},inplace=True)
+dates=[ datetime.datetime.strptime(d,'%Y-%m-%d')
+        for d in sj.Date.values ]
+sj_dnums=utils.to_dnum(np.array(dates))
+ds_dnums=utils.to_dnum(ds.time)
+flag=FLAG_INTERP # call it all interp, since the provenance is obscured at this point
 
+sj_cols=['NH4','NO3','PO4','SiO2']
+potw_cols=['NH3_conc','NO3_conc','PO4_conc','SiO2_conc']
 
-##
+for sj_col,potw_col in zip(sj_cols,potw_cols):
+    ds[potw_col].sel(site='san_joaquin_at_vernalis').values[:] = np.interp(ds_dnums,
+                                                                           sj_dnums,sj[sj_col].values)
+
+## 
 
 # total headache to work through making NOx, NO2 and NO3 self-consistent.
 # This could use some real refactoring.
 
 nitrogen_utils.make_nitrogen_consistent(ds)
 
-##
+## 
+
+def fill_and_flag(ds,fld,site,
+                  lowpass_days=3*365,
+                  shortgap_days=45 # okay to interpolate a little over a month?
+              ):
+    """
+    Update a single field for a single site in ds, by
+    extracting long-term trends, seasonal cycle, and
+    interpolating between these and measured data
+    """
+    # first, create mapping from time index to absolute month
+    dts=utils.to_datetime(dns)
+    absmonth = [12*dt.year + (dt.month-1) for dt in dts]
+    absmonth = np.array(absmonth) - dts[0].year*12
+    month=absmonth%12
+
+    fld_in=ds[fld].sel(site=site)
+    orig_values=fld_in.values
+    fld_flag=ds[fld+'_flag'].sel(site=site)
+
+    prefilled=fld_flag.values & (FLAG_SEASONAL_TREND | FLAG_INTERP | FLAG_MEAN)        
+    fld_in.values[prefilled]=np.nan # resets the work of this loop in case it's run multiple times
+    n_valid=np.sum(~fld_in.isnull())        
+
+    if n_valid==0:
+        msg=" --SKIPPING--"
+    else:
+        msg=""
+    print("   field: %s  %d/%d valid input points %s"%(fld,n_valid,len(fld_in),msg))
+
+    if n_valid==0:
+        return
+
+    # get the data into a monthly time series before trying to fit seasonal cycle
+    valid = np.isfinite(fld_in.values)
+    absmonth_mean=bin_mean(absmonth[valid],fld_in.values[valid])
+    month_mean=bin_mean(month[valid],fld_in.values[valid])
+
+    if np.sum(np.isfinite(month_mean)) < 12:
+        print("Insufficient data for seasonal trends - will fill with sample mean")
+        trend_and_season=np.nanmean(month_mean) * np.ones(len(dns))
+        t_and_s_flag=FLAG_MEAN
+    else:
+        # fit long-term trend and a stationary seasonal cycle
+        # this removes both the seasonal cycle and the long-term mean,
+        # leaving just the trend
+        trend_hf=fld_in.values - month_mean[month]
+        lp = filters.lowpass_fir(trend_hf,lowpass_days,nan_weight_threshold=0.01)
+        trend = utils.fill_invalid(lp)
+        # recombine with the long-term mean and monthly trend 
+        # to get the fill values.
+        trend_and_season = trend + month_mean[month]
+        t_and_s_flag=FLAG_SEASONAL_TREND
+
+    # long gaps are mostly filled by trend and season
+    gaps=mark_gaps(dns,valid,shortgap_days,include_ends=True) 
+    fld_in.values[gaps] = trend_and_season[gaps]
+    fld_flag.values[gaps] = t_and_s_flag
+
+    still_missing=np.isnan(fld_in.values)
+    fld_in.values[still_missing] = utils.fill_invalid(fld_in.values)[still_missing]
+    fld_flag.values[still_missing] = FLAG_INTERP
+
+    # Make sure all flows are nonnegative
+    negative=fld_in.values<0.0
+    fld_in.values[negative]=0.0
+    fld_flag.values[negative] |= FLAG_CLIPPED
+
+    if 0: # illustrative(?) plots
+        fig,ax=plt.subplots()
+        ax.plot(dns,orig_values,'m-o',label='Measured %s'%fld)
+        ax.plot(dns,fld_in,'k-',label='Final %s'%fld,zorder=5)
+        # ax.plot(dns,month_mean[month],'r-',label='Monthly Clim.')
+        # ax.plot(dns,trend_hf,'b-',label='Trend w/HF')
+        ax.plot(dns,trend,'g-',lw=3,label='Trend')
+        ax.plot(dns,trend_and_season,color='orange',label='Trend and season')
+            
+## 
+
+# Interpolate flows first
+for site in ds.site.values:
+    print("Site: %s"%site)
+    fill_and_flag(ds,'flow',site)
+
+## 
+
+# Interpolate only on conc or load, not both, then convert via flow.
+# Which is better to use, flow or load?  Probably whichever is less
+# correlated with flow
+def detrend(y,x=None):
+    x=x or np.arange(len(y))
+    sel=np.isfinite(x*y)
+    mb=np.polyfit(x[sel],y[sel],1)
+    yfit=np.polyval(mb,x)
+    return y-yfit
+
+count_conc=0
+count_load=0
+
+for site in ds.site.values:
+    # print("Site: %s"%site)
+    flows=ds.flow.sel(site=site)
+    for fld in ['NO3']: 
+        conc =ds[fld+'_conc'].sel(site=site)
+        load =ds[fld+'_load'].sel(site=site)
+
+        conc_valid=np.isfinite(conc.values)
+        load_valid=np.isfinite(load.values)
+
+        # load: kg/day
+        # flow: m3/s
+        # conc: mg/l
+        # mg/l * m3/s ..... l/m3   s/day     kg/mg
+        conc_to_load_factor=1e3  * 86400 * 1e-6
+        load_to_conc_factor=1.0/conc_to_load_factor
+
+        combined_conc=np.where(conc_valid,conc,
+                               load/flows * load_to_conc_factor)
+        combined_load=np.where(load_valid,load,
+                               conc*flows * conc_to_load_factor)
+        # remove long-term trends
+        scale_conc=np.nanmean(combined_conc)
+        scale_load=np.nanmean(combined_load)
+        if 0:
+            combined_conc=detrend(combined_conc)
+            combined_load=detrend(combined_load)
+
+        conc_z_score=np.nanstd(combined_conc) / scale_conc
+        load_z_score=np.nanstd(combined_load) / scale_load
+        
+        if conc_z_score<load_z_score:
+            count_conc+=1
+            c='*'
+            l=' '
+        else:
+            count_load+=1
+            c=' '
+            l='*'
+        print("%25s  %4s  %sconc:%s %6.2f  %sload:%s %6.2f"%(site,fld,
+                                                             c,c,conc_z_score,
+                                                             l,l,load_z_score))
+##  
+plt.figure(1).clf()
+fig,axs=plt.subplots(2,1,sharex=True,num=1)
+axs[0].plot(ds.time,combined_conc,ls='None',marker='.',label='Conc comb.')
+axs[0].plot(ds.time,conc,ls='None',marker='.',label='Conc')
+axs[1].plot(ds.time,combined_load,ls='None',marker='.',label='Load comb.')
+axs[1].plot(ds.time,load,ls='None',marker='.',label='Load')
+axs[1].legend()
+axs[0].legend()
+
+# Take EBDA as an example:
+#  currently has a prescribed constant concentration of NO3.
+#  better to look at their primary constituent, NH3.
+# And NH3 load/conc is about a wash, doesn't matter.
+# NH3 from sf_southeast: similar story.
+# For both NO3 and NH4, concentration is less variable than
+# load in the majority of cases.
+
+
+## 
 # The interpolation step - building off of synth_v02.py
 
 fields=[s for s in ds.data_vars if not s.endswith('_flag')]
 
-lowpass_days=3*365
-shortgap_days=45 # okay to interpolate a little over a month?
-
-# first, create mapping from time index to absolute month
-dts=utils.to_datetime(dns)
-absmonth = [12*dt.year + (dt.month-1) for dt in dts]
-absmonth = np.array(absmonth) - dts[0].year*12
-month=absmonth%12
-
 for site in ds.site.values:
     print("Site: %s"%site)
     for fld in fields: 
-        fld_in=ds[fld].sel(site=site)
-        orig_values=fld_in.values
-        fld_flag=ds[fld+'_flag'].sel(site=site)
-
-        prefilled=fld_flag.values & (FLAG_SEASONAL_TREND | FLAG_INTERP | FLAG_MEAN)        
-        fld_in.values[prefilled]=np.nan # resets the work of this loop in case it's run multiple times
-        n_valid=np.sum( ~fld_in.isnull())        
-        
-        if n_valid==0:
-            msg=" --SKIPPING--"
-        else:
-            msg=""
-        print("   field: %s  %d/%d valid input points %s"%(fld,n_valid,len(fld_in),msg))
-
-        if n_valid==0:
+        if fld=='flow': # already did  it
             continue
-            
-        # get the data into a monthly time series before trying to fit seasonal cycle
-        valid = np.isfinite(fld_in.values)
-        absmonth_mean=bin_mean(absmonth[valid],fld_in.values[valid])
-        month_mean=bin_mean(month[valid],fld_in.values[valid])
-        
-        if np.sum(np.isfinite(month_mean)) < 12:
-            print("Insufficient data for seasonal trends - will fill with sample mean")
-            trend_and_season=np.nanmean(month_mean) * np.ones(len(dns))
-            t_and_s_flag=FLAG_MEAN
-        else:
-            # fit long-term trend and a stationary seasonal cycle
-            # this removes both the seasonal cycle and the long-term mean,
-            # leaving just the trend
-            trend_hf=fld_in.values - month_mean[month]
-            lp = filters.lowpass_fir(trend_hf,lowpass_days,nan_weight_threshold=0.01)
-            trend = utils.fill_invalid(lp)
-            # recombine with the long-term mean and monthly trend 
-            # to get the fill values.
-            trend_and_season = trend + month_mean[month]
-            t_and_s_flag=FLAG_SEASONAL_TREND
+        fill_and_flag(ds,fld,site)
 
-        # long gaps are mostly filled by trend and season
-        gaps=mark_gaps(dns,valid,shortgap_days,include_ends=True) 
-        fld_in.values[gaps] = trend_and_season[gaps]
-        fld_flag.values[gaps] = t_and_s_flag
 
-        still_missing=np.isnan(fld_in.values)
-        fld_in.values[still_missing] = utils.fill_invalid(fld_in.values)[still_missing]
-        fld_flag.values[still_missing] = FLAG_INTERP
-
-        # Make sure all flows are nonnegative
-        negative=fld_in.values<0.0
-        fld_in.values[negative]=0.0
-        fld_flag.values[negative] |= FLAG_CLIPPED
-        
-        if 0: # illustrative(?) plots
-            fig,ax=plt.subplots()
-            ax.plot(dns,orig_values,'m-o',label='Measured %s'%fld)
-            ax.plot(dns,fld_in,'k-',label='Final %s'%fld,zorder=5)
-            # ax.plot(dns,month_mean[month],'r-',label='Monthly Clim.')
-            # ax.plot(dns,trend_hf,'b-',label='Trend w/HF')
-            ax.plot(dns,trend,'g-',lw=3,label='Trend')
-            ax.plot(dns,trend_and_season,color='orange',label='Trend and season')
-            
-
-##
+## 
 
 # Mark the "types" of the sites (false, potw, refinery)
 ds['site_type']=('site',[' '*20]*len(ds.site.values))
@@ -594,35 +674,6 @@ if 1: # fix names, bitmask metadata
 
             add_bitmask_metadata(ds[flag_name],
                                  bit_meanings=flag_bits)
-
-##
-
-if 0: # This should be handled before interpolation now.
-    # NOx is by definition greater than or equal to NO3.
-    # For any concentrations or loads for which that is not true,
-    # adjust both
-
-
-    # Wanted to make sure that loads and concentrations are in agreement up to
-    # this point: they're not even close!  A problem for another day.  Filed as bug.
-
-    # Where we have NOx_conc but not NO3, copy it, and vice versa.
-    for fld_no3,fld_nox in [ ('NO3_conc','NOx_conc'),
-                             ('NO3_load','NOx_load') ]:
-        no_no3 = np.isnan(ds[fld_no3].values) & np.isfinite(ds[fld_nox].values)
-        ds[fld_no3].values[no_no3] = ds[fld_nox].values[no_no3]
-        print("%d values copied from NOx to NO3"%no_no3.sum().item())
-
-        no_nox = np.isnan(ds[fld_nox]).values & np.isfinite(ds[fld_no3]).values
-        ds[fld_nox].values[no_nox] = ds[fld_no3].values[no_nox]
-        print("%d values copied from NO3 to NOx"%no_nox.sum().item())
-
-        bad_nitro = (ds[fld_no3] > ds[fld_nox]).values
-        print("%d values averaged between NO3 and NOx"%bad_nitro.sum().item())
-
-        mid_nitro = (ds[fld_no3] + ds[fld_nox]).values
-        ds[fld_no3].values[bad_nitro]=mid_nitro[bad_nitro]
-        ds[fld_nox].values[bad_nitro]=mid_nitro[bad_nitro]
 
 ## 
 # closer to standard:

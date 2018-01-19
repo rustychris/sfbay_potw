@@ -1,19 +1,24 @@
-"""
-Compile Delta Data
+"""Compile Delta Data
 
 **Estimates loads entering Suisun Bay from the Delta**
 
-This script ingests DAYFLOW data, and nutrient data from [EMP](http://www.water.ca.gov/bdma/meta/continuous.cfm) (both lab and field datasets).  The output is flow and nutrient time series for Delta inputs to Suisun Bay.
+This script ingests DAYFLOW data, and nutrient data from
+[EMP](http://www.water.ca.gov/bdma/meta/continuous.cfm) (both lab and
+field datasets).  The output is flow and nutrient time series for
+Delta inputs to Suisun Bay.
 
-Note that this is intended for the SUNTANS model with false deltas. Flows are supposed 
-to roughly correspond to Sacramento/San Joaquin fractions exiting the Delta.
-Likewise, nutrients estimates reflect nutrient levels leaving the
-Delta.  In the biogeochemical model this is a significant approximation since nutrient transformations
-will be applied in the false delta.  Nonetheless, we assume that modeled
-transformation in the false delta are small compared to actual
-Delta nutrient transformation, so better to take Delta output.
+Note that this is intended for the SUNTANS model with false
+deltas. Flows are supposed to roughly correspond to Sacramento/San
+Joaquin fractions exiting the Delta.  Likewise, nutrients estimates
+reflect nutrient levels leaving the Delta.  In the biogeochemical
+model this is a significant approximation since nutrient
+transformations will be applied in the false delta.  Nonetheless, we
+assume that modeled transformation in the false delta are small
+compared to actual Delta nutrient transformation, so better to take
+Delta output.
 
-Processing nutrient data follows Emily Novick's *Suisun loads.r* script, as of 2016-02-08.
+Processing nutrient data follows Emily Novick's *Suisun loads.r*
+script, as of 2016-02-08.
 
 """
 
@@ -28,9 +33,6 @@ import numpy as np
 # path to POTW data files
 sources_path="../sources"
 compile_path='../outputs/intermediate'
-
-
-# In[14]:
 
 
 dayflow=pd.read_csv(os.path.join(sources_path,'DAYFLOW_1975_2016.csv'),
@@ -58,10 +60,6 @@ df_sac=pd.DataFrame( {'Date':dayflow.DATE,
 
 df_sj=pd.DataFrame( {'Date':dayflow.DATE,
                      'flow ft3/s':sjr} ).set_index('Date')
-
-
-# In[15]:
-
 
 # from Suisun loads.r
 
@@ -115,9 +113,6 @@ field=field.groupby(['SampleDate','StationCode','AnalyteName']).mean()['Result']
 field.head()
 
 
-# In[16]:
-
-
 lab0 =pd.read_csv(os.path.join(sources_path,'EMP_Lab_1975_2012.csv'),
                   parse_dates=['SampleDate'],
                   usecols=['StationCode', 'Depth', 'SampleDate','ConstituentName', 
@@ -136,9 +131,6 @@ lab1=lab0.loc[ lab0.Group.isin(['Biological', 'Nutrients', 'Other']) &
                ['SampleDate', 'StationCode', 'Depth', 'ConstituentName', 'Result']]
 
 lab1=lab1.groupby(['SampleDate','StationCode','ConstituentName']).mean()['Result'].unstack()
-
-
-# In[17]:
 
 
 # column renames, coalescing sufficiently similar columns.
@@ -299,9 +291,6 @@ sj =pd.DataFrame(sj_cols)
 # shouldn't need 'outer', but just in case.
 sac_compiled=df_sac.join(sac,how='outer')
 sj_compiled=df_sj.join(sj,how='outer')
-
-
-# In[19]:
 
 
 for df,name in [ (sac_compiled,'false_sac'),
