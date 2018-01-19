@@ -167,10 +167,12 @@ FLAG_INTERP=16
 FLAG_MEAN=32
 FLAG_CLIPPED=64 # this one actually does get used as a bitmask.
 FLAG_DELTA_DATA=128
+FLAG_FLOW_INFERRED=256
 
 # These may be joined by an underscore later on if multiple flags apply,
 # so use camel-case to join words
-flag_bits=['LoadingStudy','HDR','Summer0','Trend','Interp','Mean','Clipped','Delta']
+flag_bits=['LoadingStudy','HDR','Summer0','Trend','Interp','Mean','Clipped','Delta',
+           'FlowInferred']
 
 ## 
 
@@ -324,23 +326,6 @@ for hdr_name,ls_name in six.iteritems(hdr_name_map):
         from_hdr('PO4_load','diss_OrthoP_kgP_per_day')
         # TKN is also in there, but we're not yet worrying about it.
 
-        # # HERE - likewise, don't do this conversion yet, either
-        # # and the conversion to conc:
-        # def to_conc(ds_fld):
-        #     flow = ds_site['flow'].values[time_slc] # m3/s
-        #     load = ds_site[ds_fld+'_load'].values[time_slc] # kg X / day
-        #     # convert to g/m3
-        #     with np.errstate(all='ignore'): # don't tell me about division by zero
-        #         conc = (load * 1000.) / (flow*86400.)
-        #         conc[ flow==0.0] = 0.0
-        #     #    (kgX/d) * g/kg / (m3/s * s/day) => gX / m3
-        #     ds_site[ds_fld+'_conc'].values[time_slc] = conc
-        #     ds_site[ds_fld+'_conc_flag'].values[time_slc] = FLAG_HDR
-        # 
-        # to_conc('NOx')
-        # to_conc('NH3')
-        # to_conc('PO4')
-
 ## 
 
 # Read in the previously-composited San Joaquin River at Vernalis
@@ -446,36 +431,31 @@ def fill_and_flag(ds,fld,site,
         ax.plot(dns,trend_and_season,color='orange',label='Trend and season')
             
 ## 
+ds_fill=ds.copy(deep=True)
 
-# Interpolate flows first
-for site in ds.site.values:
-    print("Site: %s"%site)
-    fill_and_flag(ds,'flow',site)
+# Interpolate on conc, then calculate load via flow.
+# For both NO3 and NH4, concentration is less variable than
+# load in the majority of cases.
+# That may be affected by previous steps in compile_bay_potw.py
+# that impose constant concentrations, but several spot checks
+# show that even outside those cases, concentration is slightly
+# more constant.  This is counter to my expectation.
+conc_fields=[s for s in ds_fill.data_vars if s.endswith('_conc')]
 
-## 
+for site in ds_fill.site.values:
+    fill_and_flag(ds_fill,'flow',site)
 
-# Interpolate only on conc or load, not both, then convert via flow.
-# Which is better to use, flow or load?  Probably whichever is less
-# correlated with flow
-def detrend(y,x=None):
-    x=x or np.arange(len(y))
-    sel=np.isfinite(x*y)
-    mb=np.polyfit(x[sel],y[sel],1)
-    yfit=np.polyval(mb,x)
-    return y-yfit
-
-count_conc=0
-count_load=0
-
-for site in ds.site.values:
-    # print("Site: %s"%site)
-    flows=ds.flow.sel(site=site)
-    for fld in ['NO3']: 
-        conc =ds[fld+'_conc'].sel(site=site)
-        load =ds[fld+'_load'].sel(site=site)
+    flows=ds_fill.flow.sel(site=site)
+    for conc_fld in conc_fields:
+        load_fld=conc_fld.replace('_conc','_load')
+        conc =ds[conc_fld].sel(site=site)
+        load =ds[load_fld].sel(site=site)
 
         conc_valid=np.isfinite(conc.values)
         load_valid=np.isfinite(load.values)
+
+        load_flags=ds.sel(site=site)[load_fld+'_flag'].values.copy()
+        conc_flags=ds.sel(site=site)[conc_fld+'_flag'].values.copy()
 
         # load: kg/day
         # flow: m3/s
@@ -484,70 +464,40 @@ for site in ds.site.values:
         conc_to_load_factor=1e3  * 86400 * 1e-6
         load_to_conc_factor=1.0/conc_to_load_factor
 
-        combined_conc=np.where(conc_valid,conc,
+        # when we have HDR data, let that override spot samples of
+        # concentration since it is already a composite of several concentration
+        # measurements
+        hdr_loads=(load_flags & FLAG_HDR)>0
+        combined_conc=np.where(conc_valid&(~hdr_loads),conc,
                                load/flows * load_to_conc_factor)
-        combined_load=np.where(load_valid,load,
-                               conc*flows * conc_to_load_factor)
-        # remove long-term trends
-        scale_conc=np.nanmean(combined_conc)
-        scale_load=np.nanmean(combined_load)
-        if 0:
-            combined_conc=detrend(combined_conc)
-            combined_load=detrend(combined_load)
 
-        conc_z_score=np.nanstd(combined_conc) / scale_conc
-        load_z_score=np.nanstd(combined_load) / scale_load
+        # Flag the converted values as such
+        ds_fill.sel(site=site)[conc_fld+'_flag'].values[load_valid&(~conc_valid)]=FLAG_FLOW_INFERRED
+        ds_fill.sel(site=site)[conc_fld].values[:]=combined_conc
+        fill_and_flag(ds_fill,conc_fld,site)
         
-        if conc_z_score<load_z_score:
-            count_conc+=1
-            c='*'
-            l=' '
-        else:
-            count_load+=1
-            c=' '
-            l='*'
-        print("%25s  %4s  %sconc:%s %6.2f  %sload:%s %6.2f"%(site,fld,
-                                                             c,c,conc_z_score,
-                                                             l,l,load_z_score))
-##  
-plt.figure(1).clf()
-fig,axs=plt.subplots(2,1,sharex=True,num=1)
-axs[0].plot(ds.time,combined_conc,ls='None',marker='.',label='Conc comb.')
-axs[0].plot(ds.time,conc,ls='None',marker='.',label='Conc')
-axs[1].plot(ds.time,combined_load,ls='None',marker='.',label='Load comb.')
-axs[1].plot(ds.time,load,ls='None',marker='.',label='Load')
-axs[1].legend()
-axs[0].legend()
+        # Now copy back to loads via flow.
+        # Note that that this may overwrite load data if there was both a concentration measured
+        # and a load "measured"
+        
+        ds_fill.sel(site=site)[load_fld].values[:]=ds_fill.sel(site=site)[conc_fld]*flows*conc_to_load_factor
+        # This probably isn't correct
+        # Loads which were valid, and not overwritten by a concentration retain their
+        # original flag.
+        # Any other datapoints get the 
+        new_load_flags=(~load_valid)|conc_valid
+        load_flags[new_load_flags] = FLAG_FLOW_INFERRED | conc_flags[new_load_flags]
+        ds_fill.sel(site=site)[load_fld+'_flag'].values=load_flags
 
-# Take EBDA as an example:
-#  currently has a prescribed constant concentration of NO3.
-#  better to look at their primary constituent, NH3.
-# And NH3 load/conc is about a wash, doesn't matter.
-# NH3 from sf_southeast: similar story.
-# For both NO3 and NH4, concentration is less variable than
-# load in the majority of cases.
-
-
-## 
-# The interpolation step - building off of synth_v02.py
-
-fields=[s for s in ds.data_vars if not s.endswith('_flag')]
-
-for site in ds.site.values:
-    print("Site: %s"%site)
-    for fld in fields: 
-        if fld=='flow': # already did  it
-            continue
-        fill_and_flag(ds,fld,site)
 
 
 ## 
 
 # Mark the "types" of the sites (false, potw, refinery)
-ds['site_type']=('site',[' '*20]*len(ds.site.values))
+ds_fill['site_type']=('site',[' '*20]*len(ds_fill.site.values))
 
 for s in ['tesoro','phillips66','valero','chevron','shell']:
-    ds.site_type.loc[s] = 'refinery'
+    ds_fill.site_type.loc[s] = 'refinery'
 for s in ['american','sasm','novato','sunnyvale','petaluma',
           'rodeo','fs','vallejo','ebmud','san_mateo','sfo',
           'palo_alto','sausalito','south_bayside','ddsd',
@@ -556,18 +506,18 @@ for s in ['american','sasm','novato','sunnyvale','petaluma',
           'ebda','calistoga','central_marin','lg','west_county_richmond',
           'sf_southeast','mt_view','marin5','san_jose',
           'south_sf','ch','treasure_island']:
-    ds.site_type.loc[s] = 'potw'
+    ds_fill.site_type.loc[s] = 'potw'
 for s in ['false_sac','false_sj']:
-    ds.site_type.loc[s] = 'false'
+    ds_fill.site_type.loc[s] = 'false'
 
 for s in ['manteca','davis','tracy','stockton','sac_regional']: # Delta sources
-    ds.site_type.loc[s]='potw'
+    ds_fill.site_type.loc[s]='potw'
     
 for s in ['sacramento_at_verona','san_joaquin_at_vernalis']:
-    ds.site_type.loc[s]='river'
+    ds_fill.site_type.loc[s]='river'
     
-for st in np.unique( ds.site_type.values ):
-    count =np.sum(ds.site_type==st)
+for st in np.unique( ds_fill.site_type.values ):
+    count =np.sum(ds_fill.site_type==st)
     print("Site type %s: %d"%(st,count))
 
 ##     
@@ -575,35 +525,35 @@ for st in np.unique( ds.site_type.values ):
 # assign lat/lon from approx_discharge_locations.shp
 locs=wkb2shp.shp2geom('../sources/discharge_approx_locations.shp')
 
-ds['utm_x']=( ('site',), np.nan * np.ones(len(ds.site)))
-ds['utm_y']=1*ds.utm_x
+ds_fill['utm_x']=( ('site',), np.nan * np.ones(len(ds_fill.site)))
+ds_fill['utm_y']=1*ds_fill.utm_x
 # None is better than "" here, as it does not impose a field length
-ds['name']=( ('site',), [None]*len(ds.site))
+ds_fill['name']=( ('site',), [None]*len(ds_fill.site))
 
 print("Discharges in discharge_approx_locations.shp, but not in sfbay_potw data")
 for rec in locs:
-    if rec['short_name'] not in ds.site.values:
+    if rec['short_name'] not in ds_fill.site.values:
         print("    '%s'"%rec['short_name'])
         continue
     xy=np.array(rec['geom'].centroid)
 
     sel=dict(site=rec['short_name'])
-    ds['utm_x'].loc[sel]=xy[0]
-    ds['utm_y'].loc[sel]=xy[1]
-    ds['name'].loc[sel]=rec['name']
+    ds_fill['utm_x'].loc[sel]=xy[0]
+    ds_fill['utm_y'].loc[sel]=xy[1]
+    ds_fill['name'].loc[sel]=rec['name']
 
-missing=ds['site'][ np.isnan(ds['utm_x'].values) ].values
+missing=ds_fill['site'][ np.isnan(ds_fill['utm_x'].values) ].values
 if len(missing):
     print("%d sites in sfbay_potw data, but without a location from discharge_approx_locations.shp"%(len(missing)))
     print(",".join(missing))
 else:
     print("All site in sfbay_potw matched with a lat/lon")
 
-xy=np.c_[ ds.utm_x, ds.utm_y]
+xy=np.c_[ ds_fill.utm_x, ds_fill.utm_y]
 ll=proj_utils.mapper('EPSG:26910','WGS84')(xy)
-ds['latitude']=( ('site',),ll[:,1])
-ds['longitude']=( ('site',),ll[:,0])
-ds=ds.set_coords(['utm_x','utm_y','latitude','longitude'])
+ds_fill['latitude']=( ('site',),ll[:,1])
+ds_fill['longitude']=( ('site',),ll[:,0])
+ds_fill=ds_fill.set_coords(['utm_x','utm_y','latitude','longitude'])
 
 ##
 
@@ -646,7 +596,7 @@ def add_bitmask_metadata(da,
 
 if 1: # fix names, bitmask metadata
     # fix up units - 
-    for v in ds.data_vars.keys():
+    for v in ds_fill.data_vars.keys():
         if v.endswith('flag') or v in ['site_type','name']:
             continue
 
@@ -662,17 +612,17 @@ if 1: # fix names, bitmask metadata
         # Use standards dict to choose nice short names
         for k in standards:
             if v.startswith(k):
-                ds[v].attrs['standard_name']=standards[k]
-                print("  set standard name to %s"%ds[v].attrs['standard_name'])
+                ds_fill[v].attrs['standard_name']=standards[k]
+                print("  set standard name to %s"%ds_fill[v].attrs['standard_name'])
 
         # Handle the flags field
-        ds[v].attrs['long_name']=long_name
+        ds_fill[v].attrs['long_name']=long_name
         flag_name="%s_flag"%(v)
-        if flag_name in ds:
-            ds[v].attrs['flags']=flag_name
-            ds[flag_name].attrs['long_name']="Flags for %s"%v
+        if flag_name in ds_fill:
+            ds_fill[v].attrs['flags']=flag_name
+            ds_fill[flag_name].attrs['long_name']="Flags for %s"%v
 
-            add_bitmask_metadata(ds[flag_name],
+            add_bitmask_metadata(ds_fill[flag_name],
                                  bit_meanings=flag_bits)
 
 ## 
@@ -685,28 +635,28 @@ utm.SetFromUserInput('EPSG:26910')
 # This is for the "orthogonal" multidimensional array representation
 # feeling around in the dark here...
 # site_id=flow_i
-# ds.coords['site']=[site_id]
-ds['site'].attrs['cf_role']='timeseries_id'
-ds.latitude.attrs['units']='degrees_north'
-ds.latitude.attrs['standard_name']='latitude_north'
-ds.longitude.attrs['units']='degrees_east'
-ds.longitude.attrs['standard_name']='longitude_east'
-ds.utm_x.attrs['units']='m'
-ds.utm_y.attrs['units']='m'
-ds.utm_x.attrs['standard_name']='projection_x_coordinate'
-ds.utm_y.attrs['standard_name']='projection_y_coordinate'
-ds.utm_x.attrs['_CoordinateAxisType']='GeoX'
-ds.utm_y.attrs['_CoordinateAxisType']='GeoY'
-ds.attrs['featureType']='timeSeries'
+# ds_fill.coords['site']=[site_id]
+ds_fill['site'].attrs['cf_role']='timeseries_id'
+ds_fill.latitude.attrs['units']='degrees_north'
+ds_fill.latitude.attrs['standard_name']='latitude_north'
+ds_fill.longitude.attrs['units']='degrees_east'
+ds_fill.longitude.attrs['standard_name']='longitude_east'
+ds_fill.utm_x.attrs['units']='m'
+ds_fill.utm_y.attrs['units']='m'
+ds_fill.utm_x.attrs['standard_name']='projection_x_coordinate'
+ds_fill.utm_y.attrs['standard_name']='projection_y_coordinate'
+ds_fill.utm_x.attrs['_CoordinateAxisType']='GeoX'
+ds_fill.utm_y.attrs['_CoordinateAxisType']='GeoY'
+ds_fill.attrs['featureType']='timeSeries'
 
-ds['UTM10']=1
-ds.UTM10.attrs['grid_mapping_name']="universal_transverse_mercator"
-ds.UTM10.attrs['utm_zone_number']=10
-ds.UTM10.attrs['semi_major_axis']=6378137
-ds.UTM10.attrs['inverse_flattening'] = 298.257
-ds.UTM10.attrs['_CoordinateTransformType']="Projection"
-ds.UTM10.attrs['_CoordinateAxisTypes']="GeoX GeoY";
-ds.UTM10.attrs['crs_wkt']=utm.ExportToPrettyWkt()
+ds_fill['UTM10']=1
+ds_fill.UTM10.attrs['grid_mapping_name']="universal_transverse_mercator"
+ds_fill.UTM10.attrs['utm_zone_number']=10
+ds_fill.UTM10.attrs['semi_major_axis']=6378137
+ds_fill.UTM10.attrs['inverse_flattening'] = 298.257
+ds_fill.UTM10.attrs['_CoordinateTransformType']="Projection"
+ds_fill.UTM10.attrs['_CoordinateAxisTypes']="GeoX GeoY";
+ds_fill.UTM10.attrs['crs_wkt']=utm.ExportToPrettyWkt()
 
 ##
 # Output:
@@ -716,19 +666,22 @@ ds.UTM10.attrs['crs_wkt']=utm.ExportToPrettyWkt()
 nc_path=os.path.join(output_dir,'sfbay_delta_potw.nc')
 os.path.exists(nc_path) and os.unlink(nc_path)
 encoding={'time':dict(units="seconds since 1970-01-01 00:00:00")}
-ds.to_netcdf(nc_path,encoding=encoding)
+ds_fill.to_netcdf(nc_path,encoding=encoding)
 
 ## 
 
 # And write an xls file, too.  Reload from disk to ensure consistency.
-ds=xr.open_dataset(os.path.join(output_dir,'sfbay_delta_potw.nc'))
+ds_reload=xr.open_dataset(os.path.join(output_dir,'sfbay_delta_potw.nc'))
 
 writer = pd.ExcelWriter( os.path.join(output_dir,'sfbay_delta_potw.xlsx'))
 
 # Break that out into one sheet per source
-for site_name in ds.site.values:
+for site_name in ds_reload.site.values:
     print(site_name)
-    df=ds.sel(site=site_name).to_dataframe()
+    df=ds_reload.sel(site=site_name).to_dataframe()
 
     df.to_excel(writer,site_name)
 writer.save()
+
+## 
+

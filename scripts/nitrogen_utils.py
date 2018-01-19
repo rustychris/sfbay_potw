@@ -124,6 +124,19 @@ def make_nitrogen_consistent(ds):
                 print("No valid combinations of nox/no2/no3 for %s"%site)
 
             # And assign that back to the dataset:
+            no3_flag=ds_site[no3+'_flag'].values
+            no2_flag=ds_site[no2+'_flag'].values
+            nox_flag=ds_site[nox+'_flag'].values
+
+            combined_flags=no3_flag | no2_flag | nox_flag
+            no3_changed=np.isnan(ds_site[no3].values) | (ds_site[no3].values != no3_data)
+            no2_changed=np.isnan(ds_site[no2].values) | (ds_site[no2].values != no2_data)
+            nox_changed=np.isnan(ds_site[nox].values) | (ds_site[nox].values != nox_data)
+            
+            no3_flag[no3_changed]=combined_flags[no3_changed]
+            no2_flag[no2_changed]=combined_flags[no2_changed]
+            nox_flag[nox_changed]=combined_flags[nox_changed]
+
             ds_site[no3].values[:] = no3_data
             ds_site[no2].values[:] = no2_data
             ds_site[nox].values[:] = nox_data
